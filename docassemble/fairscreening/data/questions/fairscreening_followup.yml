@@ -1,0 +1,2364 @@
+---
+include: 
+  - basic-questions.yml
+comment: | 
+  Include variables from Basic Questions, and divide the application into sections.
+---
+modules:
+  - docassemble.base.util
+  - docassemble.base.core
+comment: | 
+  The app also includes docassemble.base.util and docassemble.base.core to get access to all the necessary Docassemble functions.
+---
+initial: True
+code: | 
+  if not user_logged_in():
+    kick_out_user
+  set_language(user_language)
+---
+sections:
+  - Introduction
+  - Mistakes
+  - Outdated Records
+  - Sealed Records
+  - Evictions
+  - Criminal Records
+  - Finish
+language: en
+---
+sections:
+  - Introducción
+  - Errores
+  - Registros Obsoletos
+  - Registros Sellados
+  - Desalojos
+  - Antecedentes Penales
+  - Acabado
+language: es
+---
+objects:
+  - mistakes_records: DAList.using(object_type=DAObject, complete_attribute='complete', ask_number=True)
+  - outdated_records: DAList.using(object_type=DAObject, complete_attribute='complete', ask_number=True)
+  - sealed_records: DAList.using(object_type=DAObject, complete_attribute='complete', ask_number=True)
+  - eviction_records: DAList.using(object_type=DAObject, complete_attribute='complete', ask_number=True)
+  - criminal_records_expunge: DAList.using(object_type=DAObject, complete_attribute='complete', ask_number=True)
+  - criminal_records_seal: DAList.using(object_type=DAObject, complete_attribute='complete', ask_number=True)
+---
+features:
+  navigation: True
+  progress bar: True
+  question back button: True
+  navigation back button: False
+  javascript: hide_source.js
+comment: | 
+  This block activates the Help button, navigation sections, hides the source button through some JS code, and implements Hotjar.
+---
+mandatory: True
+code: | 
+  menu_items = [ action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+  set_title(title="Fair Screening: Report Follow-up", short="Fair Screening", tab="Fair Screening", subtitle="Review your tenant screening report.")
+---
+mandatory: True
+code: | 
+  if received_report == False:
+    no_mail
+  if received_report == True: 
+    review_report_overview
+  if report_errors == True:
+    mistakes_records.gather()
+    found_mistakes
+  if report_errors == False:
+    no_mistakes
+  if too_old_records == True:
+    outdated_records.gather()
+    found_outdated
+  if too_old_records == False:
+    no_outdated
+  if report_accurate_sealed == True:
+    sealed_records.gather()
+    found_sealed
+    seal_screen
+  if report_accurate_sealed == False:
+    no_sealed
+    seal_screen
+  if eviction_to_seal == True:
+    eviction_records.gather()
+    want_to_seal_eviction
+  if eviction_to_seal == False:
+    do_not_want_to_seal_eviction
+  if records_to_expunge == True:
+    criminal_records_expunge.gather()
+  if records_to_expunge == False:
+    expunge_fail
+  if criminal_records_to_seal == True:
+    criminal_records_seal.gather()
+  if criminal_records_to_seal == False:
+    no_convictions_to_seal
+  if report_errors == True or too_old_records == True or report_accurate_sealed == True or eviction_to_seal == True or records_to_expunge == True or criminal_records_to_seal == True:
+    your_action_plan
+  else:
+    all_ok
+comment: | 
+  This logic controls whether the objects should be gathered. If you have an eviction, gather the eviction record.
+---
+event: kick_out_user
+question: |
+  Please log in to use this interview, and create an Action Plan for your tenant screening report.
+buttons:
+  - Log in: signin
+  - Exit: exit
+---
+mandatory: True
+id: userlanguage
+question: |
+  Welcome to Fair Screening. Would you prefer to proceed in English or Spanish? (Bienvenido a Fair Screening. ¿Prefiere proceder en inglés o en español?)
+choices:
+  - English: en
+  - Español: es
+field: user_language
+section: Introduction
+---
+need: user_language
+id: nextsteps
+language: en
+question: |
+  What to do next?
+subquestion: |
+  By now, you should have received a copy of your tenant screening report in the mail.
+  
+  This interview will help you figure out how to resolve specific problems with your tenant screening report. 
+
+  We'll ask you some questions about issues you may have found, such as:
+  
+  * Records with **mistakes**
+  * Records that are **too old** to appear on your report
+  * Records that you have **already sealed** with a court
+  * Records that you can **ask a court to expunge**
+  * Records that you can **ask a court to seal**
+  
+  Based on your answers, we will produce an Action Plan at the end of the interview with next steps.
+decoration: edit
+field: start_followup
+section: Introduction
+---
+need: user_language
+id: nextsteps
+language: es
+question: |
+  ¿Qué hacer a continuación?
+subquestion: |
+  A estas alturas, usted ya debería haber recibido por correo una copia de su informe de evaluación del inquilino.
+  
+  Esta entrevista le ayudará a averiguar cómo resolver problemas específicos con su informe de evaluación del inquilino. 
+
+  Le haremos algunas preguntas sobre temas que pueda haber encontrado, tales como:
+  
+  * Registros con errores
+  * Registros que son demasiado antiguos para aparecer en su informe
+  * Registros que usted ya ha sellado con una corte
+  * Registros que usted puede pedirle a la corte que borre
+  * Registros que puedes pedirle a la corte que los selle
+  
+  Basándonos en sus respuestas, elaboraremos un Plan de Acción al final de la entrevista con los siguientes pasos.
+
+decoration: edit
+field: start_followup
+section: Introducción
+---
+need: start_followup
+id: disclaimer2
+language: en
+question: | 
+  Disclaimer
+subquestion: | 
+  
+  1. Fair Screening is not an attorney. Using Fair Screening does not create an attorney-client relationship.
+  
+  2. Fair Screening provides legal information, **not legal advice**.
+  
+  3. Individuals who applied for housing anywhere in the United States can use Fair Screening to request a copy of their tenant screening report. However, only individuals who applied for housing in Illinois can use Fair Screening to identify potential changes to their report.
+
+  4. You cannot use this website to view your screening report immediately. Sometimes your report may take up to 2 weeks to arrive. If you are in a housing emergency in Illinois, <a href="https://www.illinoislegalaid.org/get-legal-help">visit Get Legal Help</a> at Illinois Legal Aid Online.
+
+  5. Fair Screening follows Federal law and Illinois state law as of **${ current_datetime() }**.
+  
+  6. Fair Screening is not responsible for any errors in your screening report. The organization that produces each screening report is solely responsible for the content of those reports.
+  
+decoration: exclamation
+field: disclaimer
+section: Introduction
+---
+need: start_followup
+id: disclaimer2
+language: es
+question: | 
+  Descargo de responsabilidad
+subquestion: | 
+  1. Fair Screening no es un abogado. El uso de la Evaluación de Imparcialidad no crea una relación abogado-cliente.
+  
+  2. Fair Screening proporciona información legal, **no asesoramiento legal**.
+  
+  3. Las personas que solicitaron una vivienda en cualquier parte de los Estados Unidos pueden usar la evaluación de equidad para solicitar una copia de su informe de evaluación de inquilinos. Sin embargo, sólo las personas que solicitaron una vivienda en Illinois pueden usar la Evaluación de Imparcialidad para identificar posibles cambios en su informe.
+
+  4. Usted no puede usar este sitio web para ver su informe de evaluación inmediatamente. A veces su informe puede tardar hasta 2 semanas en llegar. Si usted está en una emergencia de vivienda en Illinois, <a href="https://www.illinoislegalaid.org/get-legal-help">visite Obtenga Ayuda Legal </a> en Illinois Legal Aid Online.
+
+  5. Fair Screening sigue la ley Federal y la ley del estado de Illinois a partir de **${ current_datetime() }**.
+  
+  6. Fair Screening no es responsable de ningún error en su informe de evaluación. La organización que produce cada informe de evaluación es la única responsable del contenido de esos informes.
+decoration: exclamation
+field: disclaimer
+section: Introducción
+---
+need: disclaimer
+id: receivingreport
+language: en
+question: |
+  Did you receive your report?
+subquestion: |
+  Did you receive your screening report in the mail? The report might have been labeled as a:
+  
+  * Tenant screening report
+  * Tenant background check
+  * Rental screening report
+  * File disclosure
+decoration: envelope
+yesno: received_report
+section: Introduction
+help: | 
+  <br />
+  You should have received your screening report in the mail, from the company you specified in the original interview with Fair Screening.
+comment: | 
+  If you didn't receive a screening report in the mail, bounce the user out because this interview can't help them. Otherwise, proceed.
+---
+need: disclaimer
+id: receivingreport
+language: es
+question: |
+  ¿Recibió su informe?
+subquestion: |
+  ¿Recibió su informe de evaluación por correo? El informe podría haber sido etiquetado como un archivo:
+  
+  * Informe de evaluación de inquilinos
+  * Revisión de antecedentes del inquilino
+  * Informe de evaluación de la renta
+  * Divulgación de archivos
+
+decoration: envelope
+yesno: received_report
+section: Introducción
+help: | 
+  <br />
+  Usted debe haber recibido su informe de evaluación por correo, de la compañía que especificó en la entrevista original con Fair Screening.
+comment: | 
+  If you didn't receive a screening report in the mail, bounce the user out because this interview can't help them. Otherwise, proceed.
+---
+need: received_report
+id: reviewingreport
+language: en
+question: |
+  Reviewing your report
+subquestion: | 
+  Now that we know you received your screening report, we're going to help you find and correct potential issues.
+  
+  We'll start with mistakes on your report.
+decoration: search
+field: review_report_overview
+section: Introduction
+---
+need: received_report
+id: reviewingreport
+language: es
+question: |
+  Revisión de su informe
+subquestion: | 
+  Ahora que sabemos que recibió su informe de evaluación, le ayudaremos a encontrar y corregir posibles problemas.
+  
+  Empezaremos con errores en su informe.
+decoration: search
+field: review_report_overview
+section: Introducción
+---
+need: received_report
+id: mistakesintro
+language: en
+question: |
+  Mistakes in your report
+subquestion: | 
+  Carefully read through your screening report to check for mistakes. Common mistakes include:
+  
+  * Records linked to a different person with your name, or a very similar name.
+  * Records with the wrong outcome, like a case that you won, marked as a case you lost.
+  * Records linked to accounts you did not actually open.
+  
+decoration: exclamation-circle
+field: error_review
+section: Mistakes
+help: | 
+  <br />
+  Keep in mind that mistakes are records that are not accurate, they do not necessarily include all credit decisions or court cases with a bad outcome.
+  
+  Even if you disagreed with the outcome of a credit decision or a court case, there may still not be any mistake.
+---
+need: received_report
+id: mistakesintro
+language: es
+question: |
+  Errores en su informe
+subquestion: | 
+  Lea cuidadosamente su informe de evaluación para verificar si hay errores. Los errores comunes incluyen:
+  
+  * Registros vinculados a una persona diferente con su nombre, o un nombre muy similar.
+  * Registra con el resultado equivocado, como un caso que usted ganó, marcado como un caso que usted perdió.
+  * Registros vinculados a cuentas que en realidad no abrió.
+
+decoration: exclamation-circle
+field: error_review
+section: Errores
+help: | 
+  <br />
+  Tenga en cuenta que los errores son registros que no son exactos, no necesariamente incluyen todas las decisiones de crédito o casos judiciales con un mal resultado.
+  
+  Incluso si usted no está de acuerdo con el resultado de una decisión de crédito o un caso judicial, es posible que no haya ningún error.
+---
+need: error_review
+id: mistakescheck
+language: en
+question: |
+  Mistakes in your report
+subquestion: | 
+  Did you find any mistakes in your screening report?
+decoration: exclamation-circle
+yesno: report_errors
+section: Mistakes
+comment: | 
+  Ask about mistakes to see whether mistake records need to be gathered.
+---
+need: error_review
+id: mistakescheck
+language: es
+question: |
+  Errores en su informe
+subquestion: | 
+  ¿Encontró algún error en su informe de evaluación?
+decoration: exclamation-circle
+yesno: report_errors
+section: Errores
+comment: | 
+  Ask about mistakes to see whether mistake records need to be gathered.
+---
+code: |   
+  mistakes_records[i].nameofmistake
+  mistakes_records[i].complete = True
+---
+id: numberofmistakes
+language: en
+question: |
+  Mistakes in your report
+subquestion: |
+  How many mistakes are in your screening report?
+decoration: list-ol
+fields:
+  - Number of mistakes: mistakes_records.target_number
+    datatype: integer
+    required: True
+    min: 1
+section: Mistakes
+---
+id: numberofmistakes
+language: es
+question: |
+  Errores en su informe
+subquestion: |
+  ¿Cuántos errores hay en su informe de evaluación?
+decoration: list-ol
+fields:
+  - Número de errores: mistakes_records.target_number
+    datatype: integer
+    required: True
+    min: 1
+section: Errores
+---
+id: mistakedescription
+language: en
+question: | 
+  Mistakes in your report
+subquestion: |
+  In a few words, can you describe the ${ ordinal(i) } mistake?
+decoration: edit
+fields:
+  - Description: mistakes_records[i].nameofmistake
+    datatype: area
+    hint: There is a housing court record on my report that is marked as an eviction, even though I won the case.
+    required: True
+section: Mistakes
+---
+id: mistakedescription
+language: es
+question: | 
+  Errores en su informe
+subquestion: |
+  En pocas palabras, ¿podría describir el error de ${ ordinal(i) }?
+decoration: edit
+fields:
+  - Descripción: mistakes_records[i].nameofmistake
+    datatype: area
+    hint: There is a housing court record on my report that is marked as an eviction, even though I won the case.
+    required: True
+section: Errores
+---
+id: gotmistakes
+language: en
+question: | 
+  Mistakes in your report
+subquestion: | 
+  It looks like you found one or more mistakes in your report.
+  
+  We'll tell you what to do about mistakes at the end of the interview.
+
+  Now, let's move on to records that are too old to appear on your report.
+decoration: exclamation-circle
+field: found_mistakes
+section: Mistakes
+buttons:
+  - Continue: continue
+---
+id: gotmistakes
+language: es
+question: | 
+  Errores en su informe
+subquestion: | 
+  Parece que encontraste uno o más errores en tu informe.
+  
+  Le diremos qué hacer con los errores al final de la entrevista.
+
+  Ahora, pasemos a los registros que son demasiado antiguos para aparecer en su informe.
+decoration: exclamation-circle
+field: found_mistakes
+section: Errores
+buttons:
+  - Continue: continue
+---
+id: nomistakes
+language: en
+question: | 
+  Mistakes in your report
+subquestion: | 
+  It looks like you did not find any mistakes in your report. 
+  
+  Let's move on to records that are too old to appear on your report.
+decoration: check
+field: no_mistakes
+section: Mistakes
+buttons:
+  - Continue: continue
+---
+id: nomistakes
+language: es
+question: | 
+  Errores en su informe
+subquestion: | 
+  Parece que no ha encontrado ningún error en su informe. 
+  
+  Pasemos a los registros que son demasiado antiguos para aparecer en su informe.
+decoration: check
+field: no_mistakes
+section: Errores
+buttons:
+  - Continue: continue
+---
+id: outdatedcheck
+language: en
+question: | 
+  Outdated records in your report
+subquestion: | 
+  The next step is to review the report for records that are too old to appear. Do you have any of the following?
+  
+  * Evictions older than 7 years, before **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Criminal charges that didn't result in a conviction, older than 7 years. These would be before **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Bankruptcies older than 10 years, before **${ format_date( current_datetime() - date_interval(years=10) ) }**.
+  
+decoration: question
+yesno: too_old_records
+section: Outdated Records
+help: | 
+  <br />
+  Under the federal Fair Credit Reporting Act, a consumer reporting agency has time limits for reporting evictions, criminal charges that did not result in conviction, and bankruptcies.
+  
+  Tenant screening companies are consumer reporting agencies under the Act. If they break these time limits, you can ask them to remove the record.
+comment: | 
+  Ask about outdated records to see whether outdated records need to be gathered.
+---
+id: outdatedcheck
+language: es
+question: | 
+  Registros obsoletos en su informe
+subquestion: | 
+  El siguiente paso es revisar el informe en busca de registros que sean demasiado antiguos para aparecer. ¿Tiene usted alguno de los siguientes?
+  
+  * Desalojos de más de 7 años, antes de **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Cargos criminales que no resultaron en una condena, mayor de 7 años. Estos serían antes de **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Quiebras de más de 10 años, antes de **${ format_date( current_datetime() - date_interval(years=10) ) }**.
+  
+decoration: question
+yesno: too_old_records
+section: Registros Obsoletos
+help: | 
+  <br />
+  Bajo el Acta Federal de Reporte Justo de Crédito (Fair Credit Reporting Act), una agencia de reporte de crédito al consumidor tiene límites de tiempo para reportar desalojos, cargos criminales que no resultaron en una condena, y bancarrotas.
+  
+  Las compañías de selección de inquilinos son agencias de informes del consumidor bajo la Ley. Si rompen estos límites de tiempo, puede pedirles que eliminen el registro.
+comment: | 
+  Ask about outdated records to see whether outdated records need to be gathered.
+---
+code: |   
+  outdated_records[i].nameofoutdated
+  outdated_records[i].dateofoutdated
+  outdated_records[i].complete = True
+---
+id: numberofoutdated
+language: en
+question: |
+  Outdated records in your report
+subquestion: |
+  How many records that are too old to appear are in your report?
+decoration: list-ol
+section: Outdated Records
+fields:
+  - Number of outdated records: outdated_records.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: numberofoutdated
+language: es
+question: |
+  Registros obsoletos en su informe
+subquestion: |
+  ¿Cuántos registros son demasiado antiguos para aparecer en su informe?
+decoration: list-ol
+section: Registros Obsoletos
+fields:
+  - Número de registros obsoletos: outdated_records.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: outdateddescription
+language: en
+question: | 
+  Outdated records in your report
+subquestion: |
+  In a few words, can you describe the ${ ordinal(i) } record that is too old to appear?
+decoration: edit
+section: Outdated Records
+fields:
+  - Description: outdated_records[i].nameofoutdated
+    datatype: area
+    hint: There is a bankruptcy record that does not belong on my report. 
+    required: True
+---
+id: outdateddescription
+language: es
+question: | 
+  Registros obsoletos en su informe
+subquestion: |
+  En pocas palabras, ¿podría describir el registro ${ ordinal(i) } que es demasiado viejo para aparecer?
+decoration: edit
+section: Registros Obsoletos
+fields:
+  - Descripción: outdated_records[i].nameofoutdated
+    datatype: area
+    hint: There is a bankruptcy record that does not belong on my report. 
+    required: True
+---
+id: outdateddate
+language: en
+question: | 
+  Outdated records in your report
+subquestion: |
+  What is the date of the ${ ordinal(i) } record that is too old to appear?
+decoration: edit
+section: Outdated Records
+fields:
+  - Date: outdated_records[i].dateofoutdated
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: outdateddate
+language: es
+question: | 
+  Registros obsoletos en su informe
+subquestion: |
+  ¿Cuál es la fecha del registro ${ ordinal(i) } que es demasiado antiguo para aparecer?
+decoration: edit
+section: Registros Obsoletos
+fields:
+  - Fecha: outdated_records[i].dateofoutdated
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: foundoutdated
+language: en
+question: | 
+  Outdated records in your report
+subquestion: | 
+  It looks like you found one or more outdated records in your report.
+  
+  We'll tell you what to do about outdated records at the end of the interview.
+
+  Now, let's move on to records that have already been sealed.
+decoration: times
+field: found_outdated
+section: Outdated Records
+buttons:
+  - Continue: continue
+---
+id: foundoutdated
+language: es
+question: | 
+  Registros obsoletos en su informe
+subquestion: | 
+  Parece que ha encontrado uno o más registros obsoletos en su informe.
+  
+  Le diremos qué hacer con los registros obsoletos al final de la entrevista.
+
+  Ahora, pasemos a los registros que ya han sido sellados.
+decoration: times
+field: found_outdated
+section: Registros Obsoletos
+buttons:
+  - Continue: continue
+---
+id: nooutdated
+language: en
+question: | 
+  Outdated records in your report
+subquestion: | 
+  It looks like you did not find any records that are too old to appear on your screening report. 
+  
+  Let's move on to records that have already been sealed.
+decoration: check
+field: no_outdated
+section: Outdated Records
+buttons:
+  - Continue: continue
+---
+id: nooutdated
+language: es
+question: | 
+  Registros obsoletos en su informe
+subquestion: | 
+  Parece que no encontró ningún registro que sea demasiado antiguo para aparecer en su informe de evaluación. 
+  
+  Pasemos a los registros que ya han sido sellados.
+decoration: check
+field: no_outdated
+section: Registros Obsoletos
+buttons:
+  - Continue: continue
+---
+id: sealedintro
+language: en
+question: |
+  Sealed records in your report
+subquestion: | 
+  The next step is to review your screening report for accurate records that have already been sealed, or can be sealed. 
+  
+  Sealing a record means that a company cannot include the record in a screening report. 
+  
+  The most common items are eviction records and criminal records.
+decoration: search
+section: Sealed Records
+field: accurate_items
+---
+id: sealedintro
+language: es
+question: |
+  Registros sellados en su informe
+subquestion: | 
+  El siguiente paso es revisar su informe de evaluación para ver si hay registros precisos que ya hayan sido sellados o que puedan ser sellados. 
+  
+  Sellar un registro significa que una empresa no puede incluirlo en un informe de cribado. 
+  
+  Los artículos más comunes son los registros de desalojo y los antecedentes penales.
+decoration: search
+section: Registros Sellados
+field: accurate_items
+---
+id: sealedcheck
+language: en
+question: | 
+  Sealed records in your report
+subquestion: | 
+  Did you find any records that have already been sealed by a court? 
+  
+  If a record has been sealed, it should not be appearing on your screening report.
+decoration: question
+yesno: report_accurate_sealed
+section: Sealed Records
+help: | 
+  <br />
+  In order for a record to have been sealed, you or your attorney must have asked a court to seal the record.
+  
+  The court must have also agreed to actually seal the record. 
+  
+  Sealing should prevent the record from appearing in a screening report.
+comment: | 
+  Ask about already sealed records to see whether already sealed records need to be gathered.
+---
+id: sealedcheck
+language: es
+question: | 
+  Registros sellados en su informe
+subquestion: | 
+  ¿Encontró algún registro que ya haya sido sellado por un tribunal? 
+  
+  Si un registro ha sido sellado, no debería aparecer en su informe de evaluación.
+decoration: question
+yesno: report_accurate_sealed
+section: Registros Sellados
+help: | 
+  <br />
+  Para que un registro haya sido sellado, usted o su abogado deben haber pedido a un tribunal que lo selle.
+  
+  El tribunal también debe haber aceptado sellar el expediente. 
+  
+  El sellado debe evitar que el registro aparezca en un informe de cribado.
+comment: | 
+  Ask about already sealed records to see whether already sealed records need to be gathered.
+---
+code: |   
+  sealed_records[i].nameofsealed
+  sealed_records[i].dateofsealed
+  sealed_records[i].complete = True
+---
+id: numberofsealed
+language: en
+question: |
+  Sealed records in your report
+subquestion: |
+  How many records that have been sealed are in your report?
+decoration: list-ol
+section: Sealed Records
+fields:
+  - Number of sealed records: sealed_records.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: numberofsealed
+language: es
+question: |
+  Registros sellados en su informe
+subquestion: |
+  ¿Cuántos registros que han sido sellados hay en su informe?
+decoration: list-ol
+section: Registros Sellados
+fields:
+  - Número de registros sellados: sealed_records.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: sealeddescription
+language: en
+question: | 
+  Sealed records in your report
+subquestion: |
+  In a few words, can you describe the ${ ordinal(i) } sealed record?
+decoration: edit
+section: Sealed Records
+fields:
+  - Description: sealed_records[i].nameofsealed
+    datatype: area
+    hint: I have an eviction on my record, but that eviction was sealed by the court.
+    required: True
+---
+id: sealeddescription
+language: es
+question: | 
+  Registros sellados en su informe
+subquestion: |
+  En pocas palabras, ¿podría describir el registro sellado de ${ ordinal(i) }?
+decoration: edit
+section: Registros Sellados
+fields:
+  - Descripción: sealed_records[i].nameofsealed
+    datatype: area
+    hint: I have an eviction on my record, but that eviction was sealed by the court.
+    required: True
+---
+id: sealeddate
+language: en
+question: | 
+  Sealed records in your report
+subquestion: |
+  What is the date of the ${ ordinal(i) } sealed record?
+decoration: edit
+section: Sealed Records
+fields:
+  - Date: sealed_records[i].dateofsealed
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: sealeddate
+language: es
+question: | 
+  Registros sellados en su informe
+subquestion: |
+  ¿Cuál es la fecha del registro sellado de ${ ordinal(i) }?
+decoration: edit
+section: Registros Sellados
+fields:
+  - Fecha: sealed_records[i].dateofsealed
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: foundsealed
+language: en
+question: | 
+  Sealed records in your report
+subquestion: | 
+  It looks like you found one or more records that have already been sealed, in your report.
+  
+  We'll make a note of this and tell you how to address these sealed records at the end of the interview.
+
+  Now, let's move on to records that you want to seal.
+decoration: times
+field: found_sealed
+section: Sealed Records
+buttons:
+  - Continue: continue
+---
+id: foundsealed
+language: es
+question: | 
+  Registros sellados en su informe
+subquestion: | 
+  Parece que ha encontrado uno o más registros que ya han sido sellados en su informe.
+  
+  Tomaremos nota de esto y le diremos cómo abordar estos registros sellados al final de la entrevista.
+
+  Ahora, pasemos a los registros que desea sellar.
+decoration: times
+field: found_sealed
+section: Registros Sellados
+buttons:
+  - Continue: continue
+---
+id: nosealed
+language: en
+question: | 
+  Sealed records in your report
+subquestion: | 
+  It looks like you did not find any records that have already been sealed, in your report.
+  
+  Let's move on to records that you may want to seal.
+decoration: check
+field: no_sealed
+section: Sealed Records
+buttons:
+  - Continue: continue
+---
+id: nosealed
+language: es
+question: | 
+  Registros sellados en su informe
+subquestion: | 
+  Parece que no ha encontrado ningún registro que ya haya sido sellado en su informe.
+  
+  Pasemos a los registros que tal vez quiera sellar.
+decoration: check
+field: no_sealed
+section: Registros Sellados
+buttons:
+  - Continue: continue
+---
+id: requestsealintro
+language: en
+question: | 
+  Request to seal eviction records
+subquestion: |
+  We will ask you a few questions to determine if you are eligible to ask a court to seal your eviction record.
+  
+  Sealing an eviction record means that it will no longer appear on your screening report.
+decoration: search
+field: seal_screen
+progress: 50
+section: Evictions
+---
+id: requestsealintro
+language: es
+question: | 
+  Solicitud para sellar los registros de desalojo
+subquestion: |
+  Le haremos algunas preguntas para determinar si es elegible para pedirle a la corte que selle su registro de desalojo.
+  
+  Sellar un registro de desalojo significa que ya no aparecerá en su informe de revisión.
+decoration: search
+field: seal_screen
+progress: 50
+section: Desalojos
+---
+id: requestseal
+language: en
+question: | 
+  Request to seal eviction records
+subquestion: | 
+  If you have an eviction on your record, you can always ask a court to seal the record. 
+  
+  There are two kinds of evictions. 
+  
+  The first is when you are evicted because the bank took the building back from your landlord. This is a **foreclosure-related eviction**.
+  
+  The court must seal a **foreclosure-related eviction**.
+  
+  The second is when you are evicted for another reason. This is a **non-foreclosure related eviction**. 
+  
+  In this case, the court can choose whether to seal the eviction or not.
+
+  Do you want to try to seal an eviction on your record?
+decoration: question
+yesno: eviction_to_seal
+section: Evictions
+help: | 
+  <br />
+  Sealing the eviction will prevent the record from appearing in future screening reports.
+ 
+comment: | 
+  Ask about evictions to see whether eviction records need to be gathered.
+---
+id: requestseal
+language: es
+question: | 
+  Solicitud para sellar los registros de desalojo
+subquestion: | 
+  Si usted tiene un desalojo en su expediente, siempre puede pedirle a la corte que lo selle. 
+  
+  Hay dos tipos de desalojos. 
+  
+  La primera es cuando usted es desalojado porque el banco le quitó el edificio al propietario. Este es un desalojo relacionado con una ejecución hipotecaria.
+  
+  El tribunal debe sellar un **desalojo relacionado con la ejecución hipotecaria**.
+  
+  La segunda es cuando usted es desalojado por otra razón. Este es un desalojo no relacionado con una ejecución hipotecaria. 
+  
+  En este caso, el tribunal puede optar por sellar o no el desalojo.
+
+  ¿Quiere intentar sellar un desalojo en su expediente?
+decoration: question
+yesno: eviction_to_seal
+section: Desalojos
+help: | 
+  <br />
+  Sellar el desalojo evitará que el registro aparezca en futuros informes de revisión.
+ 
+comment: | 
+  Ask about evictions to see whether eviction records need to be gathered.
+---
+code: |   
+  eviction_records[i].nameofeviction
+  eviction_records[i].dateofeviction
+  eviction_records[i].complete = True
+---
+id: numberofrequestseal
+language: en
+question: |
+  Request to seal eviction records
+subquestion: |
+  How many eviction records are in your report that you want to seal?
+decoration: list-ol
+section: Evictions
+fields:
+  - Number of eviction records: eviction_records.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: numberofrequestseal
+language: es
+question: |
+  Solicitud para sellar los registros de desalojo
+subquestion: |
+  ¿Cuántos registros de desalojo hay en su informe que desea sellar?
+decoration: list-ol
+section: Desalojos
+fields:
+  - Número de registros de desalojo: eviction_records.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: requestsealdescription
+language: en
+question: | 
+  Request to seal eviction records
+subquestion: |
+  In a few words, can you describe the ${ ordinal(i) } eviction record?
+decoration: edit
+section: Evictions
+fields:
+  - Description: eviction_records[i].nameofeviction
+    datatype: area
+    hint: I was evicted, but I worked out a payment plan with my landlord. I want to have my record sealed.
+    required: True
+---
+id: requestsealdescription
+language: es
+question: | 
+  Solicitud para sellar los registros de desalojo
+subquestion: |
+  En pocas palabras, ¿podría describir el registro de desalojo de ${ ordinal(i) }?
+decoration: edit
+section: Desalojos
+fields:
+  - Descripción: eviction_records[i].nameofeviction
+    datatype: area
+    hint: I was evicted, but I worked out a payment plan with my landlord. I want to have my record sealed.
+    required: True
+---
+id: requestsealdate
+language: en
+question: | 
+  Request to seal eviction records
+subquestion: |
+  What is the date of the ${ ordinal(i) } eviction record?
+decoration: edit
+section: Evictions
+fields:
+  - Date: eviction_records[i].dateofeviction
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: requestsealdate
+language: es
+question: | 
+  Solicitud para sellar los registros de desalojo
+subquestion: |
+  ¿Cuál es la fecha del registro de desalojo de ${ ordinal(i) }?
+decoration: edit
+section: Desalojos
+fields:
+  - Fecha: eviction_records[i].dateofeviction
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: requesttoseal
+language: en
+question: | 
+  Request to seal eviction records
+subquestion: | 
+  It looks like you want to seal one or more eviction records in your report.
+ 
+  We'll make a note of this and tell you how to seal an eviction record at the end of the interview.
+
+  Let's move on to sealing criminal records.
+decoration: lock
+field: want_to_seal_eviction
+section: Evictions
+buttons:
+  - Continue: continue
+---
+id: requesttoseal
+language: es
+question: | 
+  Solicitud para sellar los registros de desalojo
+subquestion: | 
+  Parece que desea sellar uno o más registros de desalojo en su informe.
+ 
+  Tomaremos nota de esto y le diremos cómo sellar un registro de desalojo al final de la entrevista.
+
+  Pasemos a sellar los antecedentes penales.
+decoration: lock
+field: want_to_seal_eviction
+section: Desalojos
+buttons:
+  - Continue: continue
+---
+id: norequesttoseal
+language: en
+question: | 
+  Request to seal eviction records
+subquestion: | 
+  It looks like you do not have an eviction record in your report that you want to seal.
+  
+  Let's move on to expunging criminal records.
+decoration: check
+field: do_not_want_to_seal_eviction
+section: Evictions
+buttons:
+  - Continue: continue
+---
+id: norequesttoseal
+language: es
+question: | 
+  Solicitud para sellar los registros de desalojo
+subquestion: | 
+  Parece que usted no tiene un registro de desalojo en su informe que desea sellar.
+  
+  Pasemos a la eliminación de antecedentes penales.
+decoration: check
+field: do_not_want_to_seal_eviction
+section: Desalojos
+buttons:
+  - Continue: continue
+---
+code: | 
+  criminal_records_expunge[i].name_of_record
+  criminal_records_expunge[i].date_of_record
+  criminal_records_expunge[i].no_conviction
+  if criminal_records_expunge[i].no_conviction == True:
+    oktoexpunge
+  if criminal_records_expunge[i].no_conviction == False:
+    criminal_records_expunge[i].conviction_options
+    if criminal_records_expunge[i].conviction_options != "None of the above (Ninguno de los anteriores)":
+      oktoexpunge
+    if criminal_records_expunge[i].conviction_options == "None of the above (Ninguno de los anteriores)":
+      criminal_records_expunge[i].supervision
+      if criminal_records_expunge[i].supervision == True:
+        criminal_records_expunge[i].supervision_offenses
+        if criminal_records_expunge[i].supervision_offenses != "None of the above (Ninguno de los anteriores)":
+          criminal_records_expunge[i].supervision_five_years
+          if criminal_records_expunge[i].supervision_five_years == True:
+            oktoexpunge
+          if criminal_records_expunge[i].supervision_five_years == False:
+            expunge_fail
+        if criminal_records_expunge[i].supervision_offenses == "None of the above (Ninguno de los anteriores)":
+          criminal_records_expunge[i].supervision_reckless_driving
+          if criminal_records_expunge[i].supervision_reckless_driving == True:
+            criminal_records_expunge[i].age_check
+            if criminal_records_expunge[i].age_check == True:
+              criminal_records_expunge[i].supervision_underage
+              if criminal_records_expunge[i].supervision_underage == True:
+                oktoexpunge
+              if criminal_records_expunge[i].supervision_underage == False:
+                expunge_fail
+            if criminal_records_expunge[i].age_check == False:
+              expunge_fail
+          if criminal_records_expunge[i].supervision_reckless_driving == False:
+            criminal_records_expunge[i].supervision_two_years
+            if criminal_records_expunge[i].supervision_two_years == True:
+              oktoexpunge
+            if criminal_records_expunge[i].supervision_two_years == False:
+              expunge_fail
+      if criminal_records_expunge[i].supervision == False:
+        criminal_records_expunge[i].probation
+        if criminal_records_expunge[i].probation == True:
+          criminal_records_expunge[i].probation_five_years
+          if criminal_records_expunge[i].probation_five_years == True:
+            oktoexpunge
+          if criminal_records_expunge[i].probation_five_years == False:
+            expunge_fail
+        if criminal_records_expunge[i].probation == False:
+          expunge_fail
+  criminal_records_expunge[i].complete = True
+---
+id: recordstoexpunge
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Let's move on to criminal records in your report that you might want to expunge.
+  
+  When a record is expunged, the court that maintains the record destroys it.
+
+  Do you have criminal records in your report that you want to expunge?
+yesno: records_to_expunge
+decoration: question
+section: Criminal Records
+---
+id: recordstoexpunge
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  Pasemos a los antecedentes penales de tu informe que quizá quieras borrar.
+  
+  Cuando se borra un registro, el tribunal que lo mantiene lo destruye.
+
+  ¿Tiene antecedentes penales en su informe que desea borrar?
+yesno: records_to_expunge
+decoration: question
+section: Antecedentes Penales
+---
+id: expungenumber
+language: en
+question: |
+  Request to expunge criminal records
+subquestion: |
+  How many criminal records are in your report?
+decoration: edit
+fields:
+  - Number of records: criminal_records_expunge.target_number
+    datatype: integer
+    required: True
+    min: 1
+section: Criminal Records
+---
+id: expungenumber
+language: es
+question: |
+  Solicitud para borrar antecedentes penales
+subquestion: |
+  ¿Cuántos antecedentes hay en su informe?
+decoration: edit
+fields:
+  - Number of records: criminal_records_expunge.target_number
+    datatype: integer
+    required: True
+    min: 1
+section: Antecedentes Penales
+---
+id: expungename
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  In a few words, can you describe the ${ ordinal(i) } criminal record?
+decoration: edit
+section: Criminal Records
+fields:
+  - Description: criminal_records_expunge[i].name_of_record
+    datatype: area   
+    hint: I was convicted for retail theft in Illinois.
+    required: True
+---
+id: expungename
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  En pocas palabras, ¿puede describir los ${ ordinal(i) } antecedentes penales?
+decoration: edit
+section: Antecedentes Penales
+fields:
+  - Description: criminal_records_expunge[i].name_of_record
+    datatype: area   
+    hint: I was convicted for retail theft in Illinois.
+    required: True
+---
+id: expungedate
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  What is the date of the ${ ordinal(i) } criminal record?
+fields: 
+  - Date: criminal_records_expunge[i].date_of_record
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+decoration: edit
+section: Criminal Records
+---
+id: expungedate
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Cuál es la fecha de los ${ ordinal(i) } antecedentes penales?
+fields: 
+  - Fecha: criminal_records_expunge[i].date_of_record
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+decoration: edit
+section: Antecedentes Penales
+---
+id: expungenoconviction
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Is this an arrest or charge that **did not** result in a conviction?
+decoration: edit
+yesno: criminal_records_expunge[i].no_conviction
+section: Criminal Records
+---
+id: expungenoconviction
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Es esto un arresto o una acusación que no resultó en una condena?
+decoration: edit
+yesno: criminal_records_expunge[i].no_conviction
+section: Antecedentes Penales
+---
+id: oktoexpunge
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  It looks like you can ask a court to expunge this criminal record.
+  
+  We'll tell you what to do about expunging criminal records at the end of the interview.
+decoration: clipboard-list
+field: oktoexpunge
+section: Criminal Records
+---
+id: oktoexpunge
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  Parece que puedes pedirle a la corte que elimine este antecedente criminal.
+  
+  Le diremos qué hacer para borrar los antecedentes penales al final de la entrevista.
+decoration: clipboard-list
+field: oktoexpunge
+section: Antecedentes Penales
+---
+id: expungefail
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  % if records_to_expunge == False:
+  It looks like you do not have any criminal records you want to expunge on your report.
+  % else:
+  It looks like you are not eligible to expunge this criminal record.
+  % endif
+decoration: check
+field: expunge_fail
+section: Criminal Records
+---
+id: expungefail
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  % if records_to_expunge == False:
+  Parece que no tiene ningún registro de antecedentes penales que quiera borrar de su informe.
+  % else:
+  Parece que usted no es elegible para borrar este registro de antecedentes penales.
+  % endif
+decoration: check
+field: expunge_fail
+section: Antecedentes Penales
+---
+id: expungeconvictionoptions
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Did any of the following happen to your conviction?
+field: criminal_records_expunge[i].conviction_options
+choices:
+  - Reversed
+  - Vacated
+  - Pardoned by the Governor
+  - Deemed eligible for Expungement from a Prisoner Review Board
+  - None of the above (Ninguno de los anteriores)
+decoration: clipboard-list
+required: True
+section: Criminal Records
+---
+id: expungeconvictionoptions
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Le pasó algo de lo siguiente a su condena?
+field: criminal_records_expunge[i].conviction_options
+choices:
+  - Invertido
+  - Desocupado
+  - Perdonado por el Gobernador
+  - Se considera elegible para ser borrado de una Junta de Revisión de Prisioneros.
+  - None of the above (Ninguno de los anteriores)
+decoration: clipboard-list
+required: True
+section: Antecedentes Penales
+---
+id: expungesupervision
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Did this record have a sentence for court supervision?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision
+section: Criminal Records
+---
+id: expungesupervision
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Tenía este registro una sentencia por supervisión judicial?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision
+section: Antecedentes Penales
+---
+id: expungesupervisionoffenses
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Did you finish your court supervision for any of the following offenses:
+field: criminal_records_expunge[i].supervision_offenses
+choices:
+  - Domestic Battery
+  - Criminal Sexual Abuse (victim was 18 or older) 
+  - Operation of an Uninsured Motor Vehicle
+  - Suspended registration for non-insurance
+  - Display of false insurance card
+  - None of the above (Ninguno de los anteriores)
+decoration: clipboard-list
+required: True
+section: Criminal Records
+---
+id: expungesupervisionoffenses
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Terminó la supervisión de la corte por alguna de las siguientes ofensas:
+field: criminal_records_expunge[i].supervision_offenses
+choices:
+  - Batería doméstica
+  - Abuso sexual criminal (la víctima tenía 18 años o más) 
+  - Operación de un vehículo de motor sin seguro
+  - Suspensión de la inscripción por falta de seguro
+  - Exhibición de tarjetas de seguro falsas
+  - None of the above (Ninguno de los anteriores)
+decoration: clipboard-list
+required: True
+section: Antecedentes Penales
+---
+id: expungesupervisionreckless
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Was your court supervision for a reckless driving charge?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_reckless_driving
+section: Criminal Records
+---
+id: expungesupervisionreckless
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Fue la supervisión de la corte por un cargo de conducción imprudente?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_reckless_driving
+section: Antecedentes Penales
+---
+id: expungeagecheck
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Are you 25 or older?
+yesno: criminal_records_expunge[i].age_check
+section: Criminal Records
+---
+id: expungeagecheck
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Tienes 25 años o más?
+yesno: criminal_records_expunge[i].age_check
+section: Antecedentes Penales
+---
+id: expungesupervisionunderage
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Did your reckless driving supervision finish when you were under 25?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_underage
+section: Criminal Records
+---
+id: expungesupervisionunderage
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Terminó su imprudente supervisión de manejo cuando tenía menos de 25 años?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_underage
+section: Antecedentes Penales
+---
+id: expungesupervisiontwo
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Have at least 2 years passed since you completed your court supervision?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_two_years
+section: Criminal Records
+---
+id: expungesupervisiontwo
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Han pasado por lo menos 2 años desde que usted completó la supervisión de la corte?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_two_years
+section: Antecedentes Penales
+---
+id: expungesupervisionfive
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Have at least 5 years passed since you completed your court supervision?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_five_years
+section: Criminal Records
+---
+id: expungesupervisionfive
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Han pasado por lo menos 5 años desde que usted completó la supervisión de la corte?
+decoration: edit
+yesno: criminal_records_expunge[i].supervision_five_years
+section: Antecedentes Penales
+---
+id: expungeprobation
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Did you receive an order of probation?
+decoration: edit
+yesno: criminal_records_expunge[i].probation
+section: Criminal Records
+---
+id: expungeprobation
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Recibió una orden de libertad condicional?
+decoration: edit
+yesno: criminal_records_expunge[i].probation
+section: Antecedentes Penales
+---
+id: expungeprobationfive
+language: en
+question: | 
+  Request to expunge criminal records
+subquestion: | 
+  Have 5 years passed since you successfully finished your probation?
+decoration: edit
+yesno: criminal_records_expunge[i].probation_five_years 
+section: Criminal Records
+---
+id: expungeprobationfive
+language: es
+question: | 
+  Solicitud para borrar antecedentes penales
+subquestion: | 
+  ¿Han pasado 5 años desde que terminó exitosamente su período de prueba?
+decoration: edit
+yesno: criminal_records_expunge[i].probation_five_years 
+section: Antecedentes Penales
+---
+id: convictioncheck
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: | 
+  Let's take the records you were not able to expunge and see if they are eligible to be sealed.
+  
+  When a record is sealed, the court hides it from public viewing. The record still exists, however.
+  
+  Do you have any of those records in your report?
+decoration: question
+yesno: criminal_records_to_seal
+section: Criminal Records
+help: | 
+  <br />
+  Criminal convictions that fall under a specific list of misdemeanors or felonies are usually eligible to be sealed.
+  
+  Keep in mind that you will need to ask the court to seal the charge, and the court will need to agree.
+comment: | 
+  Ask about criminal convictions to see whether we need to ask eligibility questions for criminal convictions.
+---
+id: convictioncheck
+language: es
+question: | 
+  Solicitud de sellado de antecedentes penales
+subquestion: | 
+  Tomemos los registros que no pudo borrar y veamos si son elegibles para ser sellados.
+  
+  Cuando un registro es sellado, la corte lo esconde de la vista pública. Sin embargo, el registro todavía existe.
+  
+  ¿Tiene alguno de esos registros en su informe?
+decoration: question
+yesno: criminal_records_to_seal
+section: Antecedentes Penales
+help: | 
+  <br />
+  Las condenas penales que caen dentro de una lista específica de delitos menores o mayores por lo general son elegibles para ser selladas.
+  
+  Tenga en cuenta que tendrá que pedirle al tribunal que selle la acusación, y el tribunal tendrá que estar de acuerdo.
+comment: | 
+  Ask about criminal convictions to see whether we need to ask eligibility questions for criminal convictions.
+---
+code: | 
+  criminal_records_seal[i].nameofcharge
+  criminal_records_seal[i].dateofcharge
+  criminal_records_seal[i].three_year_screen
+  if criminal_records_seal[i].three_year_screen == True:
+    criminal_records_seal[i].misdemeanor_screen
+    if criminal_records_seal[i].misdemeanor_screen == True:
+      at_least_one_conviction_to_seal
+    if criminal_records_seal[i].misdemeanor_screen == False:
+      criminal_records_seal[i].felony_screen
+      if criminal_records_seal[i].felony_screen == True:
+        at_least_one_conviction_to_seal
+      if criminal_records_seal[i].felony_screen == False:
+        no_convictions_to_seal     
+  if criminal_records_seal[i].three_year_screen == False:
+    no_convictions_to_seal
+  criminal_records_seal[i].complete = True
+---
+id: convictionthreeyears
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: | 
+  In order to seal a criminal conviction, at least three years must have passed since the end of the last sentence.
+  
+  Has it been at least 3 years since you finished your sentence?
+  
+  Your sentence would have finished no later than **${ format_date( current_datetime() - date_interval(years=3) ) }**.
+decoration: calendar
+yesno: criminal_records_seal[i].three_year_screen
+section: Criminal Records
+---
+id: convictionthreeyears
+language: es
+question: | 
+  Solicitud de sellado de antecedentes penales
+subquestion: | 
+  Para que una condena sea firme, deben haber transcurrido al menos tres años desde el final de la última sentencia.
+  
+  ¿Han pasado por lo menos 3 años desde que terminaste tu sentencia?
+  
+  Su oración habría terminado no más tarde que **${ format_date( current_datetime() - date_interval(years=3) ) }**.
+decoration: calendar
+yesno: criminal_records_seal[i].three_year_screen
+section: Antecedentes Penales
+---
+id: convictionmisdemeanor
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: | 
+  In order to seal a conviction, the conviction must be a specific misdemeanor or felony.
+  
+  Is your conviction one of the following misdemeanors?
+  
+  * Minor traffic offenses
+  * Driving offenses, including reckless driving and DUI
+  * Domestic battery
+  * Violation of an order of protection, civil no-contact order, or stalking no-contact order
+  * Sexual offenses, including soliciting a prostitute
+  * Animal offenses, including dog fighting, beating an animal, and abandonment
+decoration: list
+yesno: criminal_records_seal[i].misdemeanor_screen
+section: Criminal Records
+comment: | 
+  If the conviction is one of these misdemeanors, we should gather it because it could be sealed.
+---
+id: convictionmisdemeanor
+language: es
+question: | 
+  Solicitud de sellado de antecedentes penales
+subquestion: | 
+  Para sellar una convicción, la convicción debe ser un delito menor o una felonía específica.
+  
+  ¿Es su convicción uno de los siguientes delitos menores?
+  
+  * Ofensas menores de tráfico
+  * Ofensas de manejo, incluyendo manejo imprudente y DUI
+  * Batería doméstica
+  * Violación de una orden de protección, orden civil prohibiendo contacto, u orden de acecho prohibiendo contacto
+  * Ofensas sexuales, incluyendo solicitar una prostituta
+  * Ofensas de animales, incluyendo peleas de perros, golpear a un animal y abandono.
+
+decoration: list
+yesno: criminal_records_seal[i].misdemeanor_screen
+section: Antecedentes Penales
+comment: | 
+  If the conviction is one of these misdemeanors, we should gather it because it could be sealed.
+---
+id: convictionfelony
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: | 
+  Is your conviction one of the following felonies?
+  
+  * Possession with intent
+  * Theft
+  * Retail theft
+  * Deceptive practices
+  * Forgery
+  * Possession of burglary tools
+  * Violation of the Steroid Control Act
+  * Violation of the Methamphetamine Precursor Control Act
+decoration: list
+yesno: criminal_records_seal[i].felony_screen
+section: Criminal Records
+comment: | 
+  If the conviction is one of these felonies, we should gather it because it could be sealed.
+---
+id: convictionfelony
+language: es
+question: | 
+  Solicitud de sellado de antecedentes penales
+subquestion: | 
+  ¿Es su condena uno de los siguientes delitos?
+  
+  * Posesión con intención
+  * Robo
+  * Robo de tiendas
+  * Prácticas engañosas
+  * Falsificación
+  * Posesión de herramientas de robo
+  * Violación de la Ley de Control de Esteroides
+  * Violación de la Ley de Control de Precursores de Metanfetamina
+decoration: list
+yesno: criminal_records_seal[i].felony_screen
+section: Antecedentes Penales
+comment: | 
+  If the conviction is one of these felonies, we should gather it because it could be sealed.
+---
+id: convictionfelony
+language: en
+question: |
+  Request to seal criminal records
+subquestion: |
+  How many criminal records that led to a conviction or supervision order are in your report?
+decoration: list-ol
+section: Criminal Records
+fields:
+  - Number of criminal convictions: criminal_records_seal.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: convictionfelony
+language: es
+question: |
+  Solicitud de sellado de antecedentes penales
+subquestion: |
+  ¿Cuántos antecedentes penales que condujeron a una condena o a una orden de supervisión se encuentran en su informe?
+decoration: list-ol
+section: Antecedentes Penales
+fields:
+  - Número de condenas penales: criminal_records_seal.target_number
+    datatype: integer
+    min: 1
+    required: True
+---
+id: convictiondescription
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: |
+  In a few words, can you describe the ${ ordinal(i) } criminal conviction?
+decoration: edit
+section: Criminal Records
+fields:
+  - Description: criminal_records_seal[i].nameofcharge
+    datatype: area   
+    hint: I was convicted for retail theft in Illinois.
+    required: True
+---
+id: convictiondescription
+language: es
+question: | 
+  Solicitud de sellado de antecedentes penales
+subquestion: |
+  En pocas palabras, ¿podría describir la condena penal de ${ ordinal(i) }?
+decoration: edit
+section: Antecedentes Penales
+fields:
+  - Descripción: criminal_records_seal[i].nameofcharge
+    datatype: area   
+    hint: I was convicted for retail theft in Illinois.
+    required: True
+---
+id: convictiondate
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: |
+  What is the date of the ${ ordinal(i) } criminal conviction?
+decoration: edit
+section: Criminal Records
+fields:
+  - Date: criminal_records_seal[i].dateofcharge
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: convictiondate
+language: es
+question: | 
+  Solicitud de sellado de antecedentes penales
+subquestion: |
+  ¿Cuál es la fecha de la condena penal de ${ ordinal(i) }?
+decoration: edit
+section: Antecedentes Penales
+fields:
+  - Fecha: criminal_records_seal[i].dateofcharge
+    hint: MM/DD/YYYY
+    required: True
+    datatype: date
+---
+id: sealingresultsconviction
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: | 
+  It looks like you can ask a court to seal this criminal conviction.
+  
+  We'll tell you what to do about sealing criminal convictions at the end of the interview.
+decoration: clipboard-list
+section: Criminal Records
+field: at_least_one_conviction_to_seal
+---
+id: sealingresultsconviction
+language: es
+question: | 
+  Resultados del sellado
+subquestion: | 
+  Parece que puedes pedirle a la corte que selle esta condena criminal.
+  
+  Le diremos qué hacer para sellar las condenas penales al final de la entrevista.
+decoration: clipboard-list
+section: Antecedentes Penales
+field: at_least_one_conviction_to_seal
+---
+id: sealingresultsnoconviction
+language: en
+question: | 
+  Request to seal criminal records
+subquestion: |   
+  % if criminal_records_to_seal == False:
+  It looks like you do not have any criminal records you want to seal on your report.
+  % else:
+  It looks like you are not eligible to seal this conviction.
+  % endif
+decoration: clipboard-list
+section: Criminal Records
+field: no_convictions_to_seal
+---
+id: sealingresultsnoconviction
+language: es
+question: | 
+  Resultados del sellado
+subquestion: | 
+  % if criminal_records_to_seal == False:
+  Parece que no tiene antecedentes penales que quiera sellar en su informe.
+  % else:
+  Parece que no eres elegible para sellar esta condena.
+  % endif
+decoration: clipboard-list
+section: Antecedentes Penales
+field: no_convictions_to_seal
+---
+id: noreportinmail
+language: en
+question: |
+  Did not receive screening report
+subquestion: | 
+  You should have received a copy of your screening report in the mail. 
+  
+  Your best option is to reach out to the screening company directly, and ask them why you did not receive your report.
+ 
+  We have provided a [list of screening companies and their contact information here](${ url_of('help') }).
+  
+  Once you receive your screening report, you can go back into this interview to learn about addressing any problems you find.
+decoration: exclamation
+event: no_mail
+section: Introduction
+buttons:
+  - Exit: exit
+  - Restart: restart
+help: | 
+
+  CIC Reports Consumer Relations
+  Fax: 3129326479
+  Phone: 3129326479
+  42913 Capital Drive, Unit 101
+  Lancaster, CA 93535
+  
+  CoreLogic SafeRent
+  Fax: 3129326479
+  Phone: 3129326479
+  Consumer Relations Department, P.O. Box 509124
+  San Diego, CA 92150
+  
+  Experian RentBureau
+  Fax: 3129326479
+  Phone: 3129326479
+  P.O. Box 26
+  Allen, TX 75013
+
+  First Advantage Consumer Center
+  Fax: 3129326479
+  Phone: 3129326479
+  P.O. Box 105292
+  Atlanta, GA 30348
+  
+  LeasingDesk Screening Consumer Relations
+  Fax: 3129326479
+  Phone: 3129326479
+  2201 Lakeside Blvd
+  Richardson, TX 75082
+  
+  Screening Reports, Inc.
+  Fax: 3129326479
+  Phone: 3129326479
+  220 Gerry Drive
+  Wood Dale, IL 60191
+  
+  Tenant Data Services
+  Fax: 3129326479
+  Phone: 3129326479
+  P.O. Box 5404
+  Lincoln, NE 68505
+
+  TransUnion Rental Screening Solutions
+  Fax: 3129326479
+  Phone: 3129326479
+  Escalations Department
+  6430 South Fiddlers Green Circle, Suite 500
+  Greenwood Village, CO 80111
+  
+comment: | 
+  This is the message you get if you didn't receive the screening report in the mail, you're done with the interview.
+---
+id: noreportinmail
+language: es
+question: |
+  No recibió el informe de evaluación
+subquestion: | 
+  Usted debería haber recibido una copia de su informe de evaluación por correo. 
+  
+  Su mejor opción es comunicarse directamente con la compañía de detección y preguntarle por qué no recibió su informe.
+ 
+  Hemos proporcionado una [lista de compañías de selección y su información de contacto aquí](${ url_of('help') }).
+  
+  Una vez que reciba su informe de evaluación, puede volver a esta entrevista para aprender cómo abordar cualquier problema que encuentre.
+decoration: exclamation
+event: no_mail
+section: Introducción
+buttons:
+  - Salir: exit
+  - Reinicio: restart
+help: | 
+
+  CIC Reports Consumer Relations
+  Fax: 3129326479
+  Phone: 3129326479
+  42913 Capital Drive, Unit 101
+  Lancaster, CA 93535
+  
+  CoreLogic SafeRent
+  Fax: 3129326479
+  Phone: 3129326479
+  Consumer Relations Department, P.O. Box 509124
+  San Diego, CA 92150
+  
+  Experian RentBureau
+  Fax: 3129326479
+  Phone: 3129326479
+  P.O. Box 26
+  Allen, TX 75013
+
+  First Advantage Consumer Center
+  Fax: 3129326479
+  Phone: 3129326479
+  P.O. Box 105292
+  Atlanta, GA 30348
+  
+  LeasingDesk Screening Consumer Relations
+  Fax: 3129326479
+  Phone: 3129326479
+  2201 Lakeside Blvd
+  Richardson, TX 75082
+  
+  Screening Reports, Inc.
+  Fax: 3129326479
+  Phone: 3129326479
+  220 Gerry Drive
+  Wood Dale, IL 60191
+  
+  Tenant Data Services
+  Fax: 3129326479
+  Phone: 3129326479
+  P.O. Box 5404
+  Lincoln, NE 68505
+
+  TransUnion Rental Screening Solutions
+  Fax: 3129326479
+  Phone: 3129326479
+  Escalations Department
+  6430 South Fiddlers Green Circle, Suite 500
+  Greenwood Village, CO 80111
+  
+comment: | 
+  This is the message you get if you didn't receive the screening report in the mail, you're done with the interview.
+---
+id: sealingresultsnoconviction
+language: es
+question: | 
+  Resultados del sellado
+subquestion: | 
+  Parece que no encontró ninguna condena penal que pueda pedirle a la corte que selle.
+  
+  Pasemos a su plan de acción.
+decoration: clipboard-list
+section: Antecedentes Penales
+field: no_convictions_to_seal
+---
+id: allok
+language: en
+question: |
+  No problems with your report
+subquestion: | 
+  Everything looks OK.
+  
+  At this time, there are no problems with your report that can be changed.
+decoration: check
+event: all_ok
+section: Introduction
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: allok
+language: es
+question: |
+  No hay problemas con su informe
+subquestion: | 
+  Todo parece estar bien.
+  
+  No hay problemas con su informe que puedan ser cambiados.
+decoration: check
+event: all_ok
+section: Introducción
+buttons:
+  - Salir: exit
+  - Reinicio: restart
+---
+id: actionplan
+language: en
+question: |
+  Your action plan
+subquestion: | 
+  We have processed your interview answers, and created a custom action plan for your situation. You can download that action plan below. 
+section: Finish
+attachment:
+  name: Action Plan
+  filename: Action_Plan
+  docx template file: plan.docx
+  valid formats:
+    - pdf
+    - docx
+allow emailing: True
+decoration: flag-checkered
+field: your_action_plan
+buttons:
+  - Continue: continue
+comment: | 
+  This is the action plan based on the records the user specified in the interview, and it marks the end of the interview process.
+---
+id: actionplan
+language: es
+question: |
+  Su plan de acción
+subquestion: | 
+  Hemos procesado sus respuestas a la entrevista y creado un plan de acción personalizado para su situación. Puede descargar el plan de acción a continuación. 
+section: Acabado
+attachment:
+  name: Action Plan
+  filename: Action_Plan
+  docx template file: plan_es.docx
+  valid formats:
+    - pdf
+    - docx
+allow emailing: True
+decoration: flag-checkered
+field: your_action_plan
+buttons:
+  - Continuar: continue
+comment: | 
+  This is the action plan based on the records the user specified in the interview, and it marks the end of the interview process.
+---
+mandatory: True
+prevent going back: True
+id: finish_followup
+language: en
+question: | 
+  You're done!
+subquestion: | 
+  Thank you for using Fair Screening. If you have any questions or comments, you can contact Fair Screening at fairscreeningreports@gmail.com.
+decoration: flag-checkered
+section: Finish
+progress: 100
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+mandatory: True
+prevent going back: True
+id: finish_followup
+language: es
+question: | 
+  ¡Estás acabado!
+subquestion: | 
+  Gracias por usar Fair Screening. Si tiene alguna pregunta o comentario, puede ponerse en contacto con Fair Screening en fairscreeningreports@gmail.com.
+decoration: flag-checkered
+section: Acabado
+progress: 100
+buttons:
+  - Salir: exit
+  - Reinicio: restart
+---
+id: contact
+event: contact
+language: en
+question: |
+  Contact Fair Screening
+subquestion: |
+  If you have any questions or comments, you can contact Fair Screening at fairscreeningreports@gmail.com.
+section: Introduction
+---
+id: privacy
+event: privacy
+language: en
+question: |
+  Privacy Policy
+subquestion: |
+ 
+  Last Updated: April 2, 2018
+
+ 
+  This Fair Screening Privacy Policy describes how we treat personal and company information when you visit Fairscreening.com (the "Site"). This Privacy Policy is incorporated into, and considered a part of, the Fair Screening Terms of Service, currently located at Terms of Use. Any terms not defined herein have the meanings ascribed to them in the Terms of Service.
+
+  MEMBER CONSENT
+  
+  Fair Screening will collect no personal information about you unless you choose to provide that information to us. If you do nothing during your visits but browse throughout our website, read pages, or download information, we will gather and store certain information about your visit automatically. This information does not identify you personally. By submitting or making available Personal Data (as defined below) through the Site, you agree to the terms of this Privacy Policy, and you expressly consent to the processing of your Personal Data in accordance with this Privacy Policy.
+
+  By using our site, you consent to the Site's Privacy Policy.
+ 
+  Please also visit our Terms of Use section establishing the use, disclaimers, and limitations of liability governing the use of the Site.
+ 
+  SCREENING REPORT REQUESTS
+
+  Fair Screening includes a function to request a tenant screening report from a variety of companies that offer this service ("Screening Company"). We may include personal data you provide in your automated request for a screening report. We send this data through electronic fax, directly to the fax number of the Screening Company. Once the fax is sent to the Screening Company, Fair Screening is not responsible for how the Screening Company may use or store your personal data.
+
+  TYPES OF PERSONAL DATA WE COLLECT
+  
+  Fair Screening collects Personal Data and Anonymous Data from you when you visit the Site. “Personal Data” means data that allows someone to identify or contact you, including, for example, your name, address, geographic location of your computer or mobile device, telephone number, and email address, as well as any other non-public information about you that is associated with or linked to any of the foregoing data. “Anonymous Data” means data about you that is not associated with or linked to your Personal Data; Anonymous Data does not permit the identification of individual persons. We collect Personal Data and Anonymous Data, as described below.
+ 
+  PERSONAL DATA YOU PROVIDE TO US
+  
+  We collect Personal Data from you, such as first and last name, email and mailing addresses, telephone number, and password, when you register for the Site. We also retain information on your behalf, such as the Personal Data described above and any correspondence. If you provide us feedback or contact us via email, we will collect your name and email address, IP address, as well as any other content included in the email, in order to send you a reply, and any information that you submit to us. If we conduct a survey in which you participate, we may collect additional profile information. We may also collect Personal Data at other instances in the Site where we state that Personal Data is being collected.
+
+  We do not sell, trade, or otherwise transfer to outside parties your personally identifiable information, except as specifically provided for in this Privacy Policy. This does not include trusted third parties who assist us in operating our website, conducting our business, or servicing you, so long as those parties agree to keep this information confidential. We may also release your information when we believe release is appropriate to comply with the law, enforce our site policies, or protect ours or others rights, property, or safety. However, non-personally identifiable visitor information may be provided to other parties for marketing, advertising, or other uses.
+
+  PERSONAL DATA COLLECTED BY THIRD PARTIES
+  
+  This Privacy Policy applies only to the use and disclosure of Personal Data that we collect while you use the Site. Our provision of a link to any other website or location is for your convenience and does not signify our endorsement of such other website or location or its contents. When you click on such a link, you will leave our Site and go to another site. During this process, a third party may collect Personal Data or Anonymous Data from you. We have no control over, do not review, and cannot be responsible for, these outside websites or their content. Please be aware that the terms of this Privacy Policy do not apply to these outside websites or content, or to any collection of data after you click on a link to or for a third party.
+
+  PERSONAL DATA COLLECTED VIA TECHNOLOGY
+  
+  The Site (which may be hosted by a third-party service provider) collects Personal Data from you, such as browser type, geographic location of your mobile device or computer, operating system and version, Internet Protocol (IP) address, domain name, information about your application, operating environment and hardware profiles and/or a date/time stamp for your visit. We may also use Cookies (as defined below) and navigational data like Uniform Resource Locators (URL) to gather information regarding the date and time of your visit and/or access to the Site and your activity on the Site. Like most Internet services, we automatically gather this Personal Data and store it in log files each time you visit the Site.
+
+  “Cookies” are small pieces of information that a website sends to your computer’s hard drive while you are viewing a web site. We may use both session Cookies (which expire once you close your web browser) and persistent Cookies (which stay on your computer until you delete them, or for an extended period of time) to provide you with a more personal and interactive experience while using the Site. Persistent Cookies can be removed by following Internet browser help file directions. If you choose to disable Cookies, some areas of the Site may not function correctly. We use cookies to help us understand and save your preferences for future visits and compile aggregate data about site traffic and site interaction so that we can offer better site experiences and tools in the future.
+
+  Some browsers may allow you to manage the storage of cookies on your device. If supported by your browser, you may set your browser to refuse all cookies (or, sometimes all third-party cookies) or to alert you when a cookie is set. However, if you select these settings, you may be unable to access certain parts of the Site. Unless you have adjusted your browser setting to refuse cookies, our system will issue cookies. For more information about how to manage your cookies preferences, use the ‘help’ menu of your web browser or explore the customer support sections of your web browser. To opt-out of all cookies or certain advertising cookies, visit the company website for your browser. Here are links to some browsers’ websites:
+ 
+  Google Chrome: www.google.com
+  Internet Explorer: support.microsoft.com
+  Mozilla Firefox: support.mozilla.org
+  Safari: support.apple.com
+  Opera: www.opera.com
+
+  DO NOT TRACK NOTICE 
+  
+  Your browser may provide you with the option to send a “Do Not Track” signal to websites you visit. This signal is used to request that websites not send the requesting device cookies, but websites have no obligation to respond to such signal or to modify their operation. At the current time, the Site is not programmed to recognize Do Not Track signals, so the Site will not treat you differently if we receive such signals from your browser and we may not comply with Do Not Track settings on your browser.
+
+  WHAT INFORMATION DO WE COLLECT?
+  
+  We collect information from you when you register on the Site. When registering on the Site, as appropriate, you may be asked to enter your name, e-mail address, mailing address and/or phone number.
+  To help us optimize the Site, we may allow other authorized third parties to place or recognize unique cookies or other tracking technology on your browser. Any information provided to third parties through cookies will not be personally identifiable information, but may provide general segment information to enhance your user experience by providing more relevant marketing. We use third-party services and tools which may send cookies to users of the Site or utilize other tracking technology to collect certain information from users.
+
+  USE OF YOUR PERSONAL DATA
+  
+  Fair Screening may use your Personal Data in the following ways:
+  To facilitate the creation of and secure your account on our network; identify you as a user in our system;
+  To provide improved administration of the Site; and
+  To improve the quality of experience when you interact with the Site.
+
+  The email address you provide may be used to send you information, respond to inquiries, and/or other requests or questions.
+
+  Except as otherwise provided in this Privacy Policy, your information, whether public or private, will not be sold, exchanged, transferred, or given to any other company for any reason whatsoever, without your consent.
+
+  We may create Anonymous Data records from Personal Data by excluding information (such as your name and email) that render the data personally identifiable to you. We use this Anonymous Data to analyze request and usage patterns so that we may enhance the content and functionality of the Site. Fair Screening reserves the right to use for other purposes and to disclose Anonymous Data to third parties in its discretion.
+
+  If you provide feedback on the Site, we may use such feedback for any purpose, provided we will not associate such feedback with your Personal Data. Fair Screening will collect and store any information contained in such communication and will treat the Personal Data in such communication in accordance with this Privacy Policy.
+
+  DISCLOSURE OF YOUR PERSONAL DATA
+  
+  We may also share your Personal Data with Partner Companies, that are our vendors, to provide technical support or to provide specific services, such as hosting of your applications, maintenance services, database management or payment processing for purchases. Partner Companies will have access to your Personal Data only to perform these services on our behalf and are obligated not to disclose or use it for any other purpose.
+ 
+  Regardless of any choices you make regarding your Personal Data (if applicable), Fair Screening may disclose Personal Data if it believes in good faith that such disclosure is necessary to (a) comply with relevant laws or to respond to subpoenas or warrants served on Fair Screening; or (b) protect or defend the rights or property of Fair Screening or users of the Site.
+
+  We may also release your information when we believe release is appropriate to comply with the law, enforce our site policies, or protect ours or others rights, property, or safety.
+
+  SECURITY OF YOUR APPLICATION AND PERSONAL DATA
+  
+  Fair Screening is committed to protecting the security of your Personal Data. We use a variety of industry-standard security technologies and procedures to help protect your Personal Data from unauthorized access, use, or disclosure. We also require you to enter a password to access your account information. Please do not disclose your account password to unauthorized people. Despite these measures, you should know that Fair Screening cannot fully eliminate security risks associated with Personal Data.
+
+  PERSONAL DATA CHANGES
+  
+  You may change any of your Personal Data in your account by editing your profile within the registration portion of the Site or by sending an email to us at the email address set forth below. You may request deletion of your account information by us, but please note that we may be required (by law or otherwise) to keep this information and not delete it (or to keep this information for a certain time, in which case we will comply with your deletion request only after we have fulfilled such requirements).
+
+  STORAGE AND PROCESSING
+  
+  Your information collected through the Site will be stored and processed in the United States. If you do not consent to having your information processed and stored in the United States, please do not provide it to us.
+
+  A NOTE ABOUT CHILDREN
+  
+  We are in compliance with the requirements of COPPA (Childrens Online Privacy Protection Act), we do not collect any information from anyone under 13 years of age. Our website, products and services are all directed to people who are at least 13 years old or older.
+
+  TRANSFER OF OWNERSHIP
+  
+  If ownership of the Site changes, whether in whole or in part, information collected through the Site about you may be transferred to the new owner so the Site and any service provided through or related to the Site can continue. In that case, your user information would remain subject to the terms and conditions of our then current Privacy Policy.
+
+  CHANGES TO THIS PRIVACY POLICY
+  
+  If Fair Screening makes changes to this Privacy Policy, these changes will be posted on the Site in a timely manner. Fair Screening reserves the right to modify this Privacy Policy at any time, so please review it frequently. You can determine when this Privacy Policy was last revised by referring to the “Last Updated” legend at the top of this page. Any changes to this Privacy Policy will become effective upon our posting of the revised Privacy Policy on the Site. Use of the Site following such changes constitutes your acceptance of the revised Privacy Policy then in effect.
+
+  CONTACT INFORMATION
+  
+  Fair Screening welcomes your comments or questions regarding this Privacy Policy. If there are any questions regarding this privacy policy or any other policies, you may contact us at fairscreeningreports@gmail.com.
+
+section: Introduction
+---
+id: tos
+event: tos
+language: en
+question: |
+  Terms of Use
+subquestion: |
+  
+  Last Updated: April 2, 2018
+ 
+  We provide a service to help users request copies of their tenant screening reports from consumer reporting agencies. This service is provided by Fair Screening through a website you access via your mobile, tablet, or desktop device (the “Site”).
+
+  Fair Screening is not a law firm. The information and services presented are not legal advice and do not substitute the advice, guidance or recommendation that a licensed attorney can provide. Additionally, you may seek and obtain information regarding free, probono, or other low cost legal representation via a non-profit organization, legal aid foundation, or law firm.
+
+  Under no circumstance does the use of the Site create an attorney-client relationship with Fair Screening. Fair Screening users are free to seek advice, counsel, or consult from any attorney of their choice at any time and without restriction.
+
+  Please read carefully the following terms and conditions (“Terms of Service”) and our Privacy Policy. These Terms of Service govern your access to and use of the Site and all Site Content and constitute a binding legal agreement between you and Fair Screening.
+
+  You acknowledge and agree that by registering for a Fair Screening account, accessing or using the Site, you are indicating that you have read, understand and agree to be bound by these terms or service. If you do not agree to these terms of service, then you have no right to access or use the Site. 
+
+  MODIFICATION
+
+  Fair Screening reserves the right, at its sole discretion, to modify, discontinue or terminate the Site or to modify these Terms of Service, at any time and without prior notice. If we modify these Terms of Service, we will post the modification on the Site or provide you with notice of the modification. We will also update the “Last Updated Date” at the top of these Terms of Service or on the Site. By continuing to access or use the Site after we have posted a modification on the Site or have provided you with notice of a modification, you are indicating that you agree to be bound by the modified Terms of Service. If the modified Terms of Service are not acceptable to you, your only recourse is to cease using the Site.
+
+  ELIGIBILITY
+ 
+  By accessing or using the Site you represent and warrant to Fair Screening that: (i) you are of legal age to form a binding contract; (ii) all registration information you submit is accurate, current and complete; and (iii) you will maintain the accuracy and completeness of such information. You also certify that you are legally permitted to use and access the Site and take full responsibility for the selection and use of and access to the Site. These Terms of Service are void where prohibited by law, and the right to access the Site is revoked in such jurisdictions. 
+
+  PRIVACY
+
+  See Fair Screening's Privacy Policy for information and notices concerning Fair Screening's collection and use of your personal information.
+
+  ACCOUNT REGISTRATION
+
+  In order to use the Site, you must register to create an account (“Account”) and become a Member.
+
+  You are responsible for maintaining the confidentiality of the user ID and password, and are fully responsible for all activities that occur under your user ID or password. You agree to immediately notify Fair Screening of any unauthorized use of your user ID or password or any other breach of security. Fair Screening cannot and will not be liable for any loss or damage arising from any unauthorized use of your account.
+
+  LICENSE GRANTED BY FAIR SCREENING
+ 
+  Subject to your compliance with these Terms of Service, Fair Screening grants you a limited non-exclusive, non-transferable license to use the Site.
+
+  GENERAL PROHIBITIONS
+ 
+  You agree not to do any of the following:
+
+  Access, tamper with, or use non-public areas of the Site; Attempt to probe, scan, or test the vulnerability of the Site or breach any security or authentication measures; Send any unsolicited or unauthorized advertising, promotional materials, email, junk mail or junk messages, spam, chain letters or other form of solicitation; Forge any TCP/IP packet header or any part of the header information in any email or newsgroup posting, or in any way use the Site to send altered, deceptive or false source-identifying information; Interfere with, or attempt to interfere with, the access of any user, host or network, including, without limitation, sending a virus, overloading, flooding, spamming, or mail-bombing the Site; Collect or store any personally identifiable information from the Site from other users without their express written permission; Violate any applicable law or regulation; or Encourage or enable any other individual or entity to do any of the foregoing.
+
+  Fair Screening will have the right to investigate and prosecute violations of any of the above to the fullest extent of the law. Fair Screening may involve and cooperate with law enforcement authorities in prosecuting users who violate these Terms of Service. You acknowledge that Fair Screening has no obligation to monitor your access to or use of the Site, but has the right to do so for the purpose of operating the Site, to ensure your compliance with these Terms of Service, or to comply with applicable law or the order or requirement of a court, administrative agency or other governmental body. 
+
+  LINKS TO THIRD-PARTY WEBSITES
+ 
+  The Site may now or in the future contain links to third-party websites, advertisers, services, or resources that are not owned or controlled by Fair Screening. You acknowledge and agree that Fair Screening has no control over and is not responsible or liable for: (i) the availability or accuracy of such websites or resources; or (ii) the content, products, privacy policies, practices, or services on or available from such websites or resources. Links to such websites or resources do not imply any endorsement by Fair Screening of such websites or resources or the content, products, practices, privacy policies, or services available from such websites or resources. You acknowledge sole responsibility for and assume all risk arising from your use of any such websites or resources or the Content, products, or services on or available from such websites or resources. Additionally, your dealings with or participation in promotions of any third parties, including payment and delivery of goods, and any other terms (such as warranties) are solely between you and such third parties. You agree that Fair Screening shall not be responsible for any loss or damage of any sort relating to your dealings with such third parties. We encourage you to be aware of when you leave the Site, and to read the terms and conditions and privacy policy of any third-party website or service that you visit. You expressly relieve Fair Screening from any and all liability arising from your use of any third-party website or services or third-party content.
+
+  TERMINATION & ACCOUNT CANCELLATION
+ 
+  If you breach any of these Terms of Service, Fair Screening will have the right to suspend, disable or terminate your Account or terminate these Terms of Service, at its sole discretion and without prior notice to you. Fair Screening reserves the right to revoke your access to and use of the Site at any time, with or without cause. In the event Fair Screening terminates these Terms of Service for your breach, you will remain liable for any and all amounts due hereunder. You may cancel your Account at any time on the site, or by sending an email to fairscreeningreports@gmail.com.
+
+  DISCLAIMERS
+ 
+  THE SITE IS PROVIDED “AS IS,” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED. WITHOUT LIMITING THE FOREGOING, FAIR SCREENING EXPLICITLY DISCLAIMS ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT, AND ANY WARRANTIES ARISING OUT OF COURSE OF DEALING OR USAGE OF TRADE. FAIR SCREENING MAKES NO WARRANTY THAT THE SITE WILL MEET YOUR REQUIREMENTS OR BE AVAILABLE ON AN UNINTERRUPTED, SECURE, OR ERROR-FREE BASIS. FAIR SCREENING MAKES NO WARRANTY REGARDING THE QUALITY OF ANY PRODUCTS OBTAINED THROUGH THE SITE OR THE ACCURACY, TIMELINESS, TRUTHFULNESS, COMPLETENESS OR RELIABILITY OF ANY CONTENT OBTAINED THROUGH THE SITE.
+
+  NO ADVICE OR INFORMATION, WHETHER ORAL OR WRITTEN, OBTAINED FROM THE SITE, WILL CREATE ANY WARRANTY NOT EXPRESSLY MADE HEREIN.
+
+  INDEMNITY
+ 
+  You agree to defend, indemnify, and hold Fair Screening, its officers, directors, employees and agents, harmless from and against any claims, liabilities, damages, losses, and expenses, including, without limitation, reasonable legal and accounting fees, arising out of or in any way connected with your access to or use of the Site, or your violation of these Terms of Service, including breach of any representations or warranties herein.
+
+  LIMITATION OF LIABILITY
+
+  YOU ACKNOWLEDGE AND AGREE THAT, TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE ENTIRE RISK ARISING OUT OF YOUR ACCESS TO AND USE OF THE SITE REMAINS WITH YOU. NEITHER FAIR SCREENING NOR ANY OTHER PERSON OR ENTITY INVOLVED IN CREATING, PRODUCING, OR DELIVERING THE SITE WILL BE LIABLE FOR ANY INCIDENTAL, SPECIAL, EXEMPLARY OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, LOSS OF DATA OR LOSS OF GOODWILL, SITE INTERRUPTION, COMPUTER DAMAGE OR SYSTEM FAILURE OR THE COST OF SUBSTITUTE PRODUCTS, OR FOR ANY DAMAGES FOR PERSONAL OR BODILY INJURY OR EMOTIONAL DISTRESS ARISING OUT OF OR IN CONNECTION WITH THESE TERMS OR FROM THE USE OF OR INABILITY TO USE THE SITE, WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE), PRODUCT LIABILITY OR ANY OTHER LEGAL THEORY, AND WHETHER OR NOT FAIR SCREENING HAS BEEN INFORMED OF THE POSSIBILITY OF SUCH DAMAGE, EVEN IF A LIMITED REMEDY SET FORTH HEREIN IS FOUND TO HAVE FAILED OF ITS ESSENTIAL PURPOSE.
+
+  SEVERABILITY
+
+  If any provision of these Terms of Use which is prohibited, unenforceable, or not authorized in any jurisdiction is, as to such jurisdiction, ineffective to the extent of any such prohibition, unenforceability or non-authorization without invalidating the remaining provisions hereof, or affecting the validity, enforceability or legality of such provision in any other jurisdiction, unless the ineffectiveness of such provision would result in such a material change as to cause completion of the transactions contemplated hereby to be unreasonable.
+
+  CONTROLLING LAW
+ 
+  These Terms of Service shall be governed and construed in accordance with the laws of Iowa, excluding that State’s choiceof- law principles, and all claims relating to or arising out of this contract, or the breach thereof, whether sounding in contract, tort or otherwise, shall likewise be governed by the laws of Iowa, excluding that State’s choice-of-law principles.
+
+  ENTIRE AGREEMENT
+ 
+  These Terms of Service constitute the entire and exclusive understanding and agreement between Fair Screening and you regarding the Site, and these Terms of Service supersede and replace any and all prior oral or written understandings or agreements between Fair Screening and you regarding the Site.
+
+  ASSIGNMENT
+ 
+  You may not assign or transfer these Terms of Service, by operation of law or otherwise, without Fair Screening's prior written consent. Any attempt by you to assign or transfer these Terms of Service, without such consent, will be null and of no effect. Fair Screening may assign or transfer these Terms of Service, at its sole discretion, without restriction. Subject to the foregoing, these Terms of Service will bind and inure to the benefit of the parties, their successors and permitted assigns.
+
+  NOTICES
+ 
+  Any notices or other communications permitted or required hereunder, including those regarding modifications to these Terms of Service, will be in writing and given by posting to the Site. 
+
+  GENERAL
+ 
+  The failure of Fair Screening to enforce any right or provision of these Terms of Service will not constitute a waiver of future enforcement of that right or provision. The waiver of any such right or provision will be effective only if in writing and signed by a duly authorized representative of Fair Screening. Except as expressly set forth in these Terms of Service, the exercise by either party of any of its remedies under these Terms of Service will be without prejudice to its other remedies under these Terms of Service or otherwise. If for any reason a court of competent jurisdiction finds any provision of these Terms of Service invalid or unenforceable, that provision will be enforced to the maximum extent permissible and the other provisions of these Terms of Service will remain in full force and effect.
+
+  CONTACTING FAIR SCREENING
+ 
+  If you have any questions about these Terms of Service, please contact us at fairscreeningreports@gmail.com.
+section: Introduction

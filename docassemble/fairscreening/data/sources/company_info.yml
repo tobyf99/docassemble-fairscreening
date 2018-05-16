@@ -1,0 +1,120 @@
+object: Organization
+module: docassemble.base.util
+items:
+  - name: TEST COMPANY
+    id: tes  
+    fax_number: 3129326479
+    phone_number: 3129326479
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: 321 N Clark St
+        unit: Floor 18
+        city: Chicago
+        state: IL
+        zip: 60654
+  - name: CIC Reports Consumer Relations
+    id: cic
+    fax_number: 8887972254
+    phone_number: 8002884757
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: 42913 Capital Drive
+        unit: Unit 101
+        city: Lancaster
+        state: CA
+        zip: 93535
+  - name: CoreLogic SafeRent
+    id: cls
+    fax_number: 8002376526
+    phone_number: 8883332413
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: Consumer Relations Department, P.O. Box 509124
+        Unit: ""
+        city: San Diego
+        state: CA
+        zip: 92150
+  - name: Experian RentBureau
+    id: exp
+    fax_number: 9723904970
+    phone_number: 8777044519
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: P.O. Box 26
+        unit: ""
+        city: Allen
+        state: TX
+        zip: 75013
+  - name: First Advantage Consumer Center
+    id: fac
+    fax_number: 7272142127
+    phone_number: 8008456004
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: P.O. Box 105292
+        unit: ""
+        city: Atlanta
+        state: GA
+        zip: 30348
+  - name: LeasingDesk Screening Consumer Relations
+    id: lds
+    fax_number: 8008668736
+    phone_number: 8669341124
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: 2201 Lakeside Blvd
+        unit: ""
+        city: Richardson
+        state: TX
+        zip: 75082
+  - name: Screening Reports, Inc.
+    id: sri
+    fax_number: 8663894043
+    phone_number: 8663894042
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: 220 Gerry Drive
+        unit: ""
+        city: Wood Dale
+        state: IL
+        zip: 60191
+  - name: Tenant Data Services
+    id: tds
+    fax_number: 8009624325
+    phone_number: 8002281837
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: P.O. Box 5404
+        unit: ""
+        city: Lincoln
+        state: NE
+        zip: 68505
+  - name: TransUnion Rental Screening Solutions
+    id: tsu
+    fax_number: 8007995885
+    phone_number: 8667750961
+    address:
+      object: Address
+      module: docassemble.base.util
+      item:
+        address: Escalations Department, 6430 South Fiddlers Green Circle
+        unit: Suite 500
+        city: Greenwood Village
+        state: CO
+        zip: 80111
