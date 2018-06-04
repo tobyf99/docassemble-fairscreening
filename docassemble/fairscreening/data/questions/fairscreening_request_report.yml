@@ -1071,6 +1071,7 @@ subquestion: |
   ${ request_to_fax }
 fields:
   - no label: email_followup
+    datatype: radio
     choices:
       - Email me in two weeks to make sure I have received my screening report.
       - No need to email me, I can follow up on my own.
@@ -1092,6 +1093,7 @@ subquestion: |
   ${ request_to_fax }
 fields:
   - no label: email_followup
+    datatype: radio
     choices:
       - Envíeme un correo electrónico dentro de dos semanas para asegurarse de que he recibido mi informe de evaluación.
       - No es necesario que me envíe un correo electrónico, puedo hacer un seguimiento por mi cuenta.
@@ -1180,9 +1182,13 @@ code: |
     send_fax('3129326479', request_to_fax)
   else:
     send_fax(str(company_info[screening_company].fax_number), request_to_fax)
-  send_email(to=user_email, template=notification, attachments=request_to_fax)
   if email_followup is 'Email me in two weeks to make sure I have received my screening report.' or 'Envíeme un correo electrónico dentro de dos semanas para asegurarse de que he recibido mi informe de evaluación.':
     send_email(to='tobyfranklin@gmail.com', template=remindertofollowup)
+---
+mandatory: True
+code: | 
+  need(email_followup)
+  send_email(to=user_email, template=notification, attachments=request_to_fax)
 ---
 mandatory: True
 prevent going back: True
