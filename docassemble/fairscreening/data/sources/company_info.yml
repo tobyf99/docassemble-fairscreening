@@ -1,23 +1,10 @@
 object: Organization
 module: docassemble.base.util
 items:
-  - name: TEST COMPANY
-    id: tes  
-    fax_number: 3129326479
-    phone_number: 3129326479
-    address:
-      object: Address
-      module: docassemble.base.util
-      item:
-        address: 321 N Clark St
-        unit: Floor 18
-        city: Chicago
-        state: IL
-        zip: 60654
   - name: CIC Reports Consumer Relations
     id: cic
     fax_number: 8887972254
-    phone_number: 8002884757
+    phone_number: 800-288-4757
     address:
       object: Address
       module: docassemble.base.util
@@ -30,7 +17,7 @@ items:
   - name: CoreLogic SafeRent
     id: cls
     fax_number: 8002376526
-    phone_number: 8883332413
+    phone_number: 888-333-2413
     address:
       object: Address
       module: docassemble.base.util
@@ -43,7 +30,7 @@ items:
   - name: Experian RentBureau
     id: exp
     fax_number: 9723904970
-    phone_number: 8777044519
+    phone_number: 877-704-4519
     address:
       object: Address
       module: docassemble.base.util
@@ -56,7 +43,7 @@ items:
   - name: First Advantage Consumer Center
     id: fac
     fax_number: 7272142127
-    phone_number: 8008456004
+    phone_number: 800-845-6004
     address:
       object: Address
       module: docassemble.base.util
@@ -69,7 +56,7 @@ items:
   - name: LeasingDesk Screening Consumer Relations
     id: lds
     fax_number: 8008668736
-    phone_number: 8669341124
+    phone_number: 866-934-1124
     address:
       object: Address
       module: docassemble.base.util
@@ -82,7 +69,7 @@ items:
   - name: Screening Reports, Inc.
     id: sri
     fax_number: 8663894043
-    phone_number: 8663894042
+    phone_number: 866-389-4042
     address:
       object: Address
       module: docassemble.base.util
@@ -95,7 +82,7 @@ items:
   - name: Tenant Data Services
     id: tds
     fax_number: 8009624325
-    phone_number: 8002281837
+    phone_number: 800-228-1837
     address:
       object: Address
       module: docassemble.base.util
@@ -108,7 +95,7 @@ items:
   - name: TransUnion Rental Screening Solutions
     id: tsu
     fax_number: 8007995885
-    phone_number: 8667750961
+    phone_number: 866-775-0961
     address:
       object: Address
       module: docassemble.base.util

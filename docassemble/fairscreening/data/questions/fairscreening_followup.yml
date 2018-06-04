@@ -11,19 +11,19 @@ comment: |
   The app also includes docassemble.base.util and docassemble.base.core to get access to all the necessary Docassemble functions.
 ---
 initial: True
-code: | 
+code: |
+  set_language(user_language)
   if not user_logged_in():
     kick_out_user
-  set_language(user_language)
 ---
 sections:
-  - Introduction
-  - Mistakes
-  - Outdated Records
-  - Sealed Records
-  - Evictions
-  - Criminal Records
-  - Finish
+  - intro: Introduction
+  - mist: Mistakes
+  - outd: Outdated Records
+  - seal: Sealed Records
+  - evict: Evictions
+  - crim: Criminal Records
+  - done: Finish
 language: en
 ---
 sections:
@@ -55,8 +55,12 @@ comment: |
 ---
 mandatory: True
 code: | 
-  menu_items = [ action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
-  set_title(title="Fair Screening: Report Follow-up", short="Fair Screening", tab="Fair Screening", subtitle="Review your tenant screening report.")
+  if user_language == 'en':
+    menu_items = [ action_menu_item('En Espanol', 'change_language_to_spanish'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+    set_title(title="Fair Screening Beta: Report Follow-up", short="Fair Screening Beta", tab="Fair Screening Beta", subtitle="Review your tenant screening report.")
+  else:
+    menu_items = [ action_menu_item('English Version', 'change_language_to_english'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+    set_title(title="Fair Screening Beta: Report Follow-up", short="Fair Screening Beta", tab="Fair Screening Beta", subtitle="Review your tenant screening report.")
 ---
 mandatory: True
 code: | 
@@ -101,6 +105,18 @@ code: |
 comment: | 
   This logic controls whether the objects should be gathered. If you have an eviction, gather the eviction record.
 ---
+event: change_language_to_spanish
+code: |
+  user_language = 'es'
+  del menu_items
+  menu_items = [ action_menu_item('English Version', 'change_language_to_english'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+---
+event: change_language_to_english
+code: |
+  user_language = 'en'
+  del menu_items
+  menu_items = [ action_menu_item('Version En Espanol', 'change_language_to_spanish'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+---
 event: kick_out_user
 question: |
   Please log in to use this interview, and create an Action Plan for your tenant screening report.
@@ -108,17 +124,75 @@ buttons:
   - Log in: signin
   - Exit: exit
 ---
-mandatory: True
-id: userlanguage
+event: intro
+section: intro
+language: en
 question: |
-  Welcome to Fair Screening. Would you prefer to proceed in English or Spanish? (Bienvenido a Fair Screening. ¿Prefiere proceder en inglés o en español?)
-choices:
-  - English: en
-  - Español: es
-field: user_language
-section: Introduction
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Start screen: start_followup
+  - Disclaimer: disclaimer
+  - Did you receive your report?: received_report
 ---
-need: user_language
+event: mist
+section: mist
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Mistakes in your report: report_errors
+---
+event: outd
+section: outd
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Outdated records in your report: too_old_records
+---
+event: seal
+section: seal
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Sealed records in your report: report_accurate_sealed
+---
+event: evict
+section: evict
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Request to seal eviction records: eviction_to_seal
+---
+event: crim
+section: crim
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Request to expunge criminal records: records_to_expunge
+  - Request to seal criminal records: criminal_records_to_seal
+---
 id: nextsteps
 language: en
 question: |
@@ -139,9 +213,8 @@ subquestion: |
   Based on your answers, we will produce an Action Plan at the end of the interview with next steps.
 decoration: edit
 field: start_followup
-section: Introduction
+section: intro
 ---
-need: user_language
 id: nextsteps
 language: es
 question: |
@@ -186,7 +259,7 @@ subquestion: |
   
 decoration: exclamation
 field: disclaimer
-section: Introduction
+section: intro
 ---
 need: start_followup
 id: disclaimer2
@@ -223,7 +296,7 @@ subquestion: |
   * File disclosure
 decoration: envelope
 yesno: received_report
-section: Introduction
+section: intro
 help: | 
   <br />
   You should have received your screening report in the mail, from the company you specified in the original interview with Fair Screening.
@@ -263,7 +336,7 @@ subquestion: |
   We'll start with mistakes on your report.
 decoration: search
 field: review_report_overview
-section: Introduction
+section: intro
 ---
 need: received_report
 id: reviewingreport
@@ -292,7 +365,7 @@ subquestion: |
   
 decoration: exclamation-circle
 field: error_review
-section: Mistakes
+section: mist
 help: | 
   <br />
   Keep in mind that mistakes are records that are not accurate, they do not necessarily include all credit decisions or court cases with a bad outcome.
@@ -329,7 +402,7 @@ subquestion: |
   Did you find any mistakes in your screening report?
 decoration: exclamation-circle
 yesno: report_errors
-section: Mistakes
+section: mist
 comment: | 
   Ask about mistakes to see whether mistake records need to be gathered.
 ---
@@ -362,7 +435,7 @@ fields:
     datatype: integer
     required: True
     min: 1
-section: Mistakes
+section: mist
 ---
 id: numberofmistakes
 language: es
@@ -390,7 +463,7 @@ fields:
     datatype: area
     hint: There is a housing court record on my report that is marked as an eviction, even though I won the case.
     required: True
-section: Mistakes
+section: mist
 ---
 id: mistakedescription
 language: es
@@ -418,7 +491,7 @@ subquestion: |
   Now, let's move on to records that are too old to appear on your report.
 decoration: exclamation-circle
 field: found_mistakes
-section: Mistakes
+section: mist
 buttons:
   - Continue: continue
 ---
@@ -448,7 +521,7 @@ subquestion: |
   Let's move on to records that are too old to appear on your report.
 decoration: check
 field: no_mistakes
-section: Mistakes
+section: mist
 buttons:
   - Continue: continue
 ---
@@ -479,7 +552,7 @@ subquestion: |
   
 decoration: question
 yesno: too_old_records
-section: Outdated Records
+section: outd
 help: | 
   <br />
   Under the federal Fair Credit Reporting Act, a consumer reporting agency has time limits for reporting evictions, criminal charges that did not result in conviction, and bankruptcies.
@@ -522,7 +595,7 @@ question: |
 subquestion: |
   How many records that are too old to appear are in your report?
 decoration: list-ol
-section: Outdated Records
+section: outd
 fields:
   - Number of outdated records: outdated_records.target_number
     datatype: integer
@@ -550,7 +623,7 @@ question: |
 subquestion: |
   In a few words, can you describe the ${ ordinal(i) } record that is too old to appear?
 decoration: edit
-section: Outdated Records
+section: outd
 fields:
   - Description: outdated_records[i].nameofoutdated
     datatype: area
@@ -576,9 +649,14 @@ language: en
 question: | 
   Outdated records in your report
 subquestion: |
-  What is the date of the ${ ordinal(i) } record that is too old to appear?
+  What is the date of the ${ ordinal(i) } record that is too old to appear? Records too old to appear are:
+  
+  * Evictions older than 7 years, before **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Criminal charges that didn't result in a conviction, older than 7 years. These would be before **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Bankruptcies older than 10 years, before **${ format_date( current_datetime() - date_interval(years=10) ) }**.
+
 decoration: edit
-section: Outdated Records
+section: outd
 fields:
   - Date: outdated_records[i].dateofoutdated
     hint: MM/DD/YYYY
@@ -590,7 +668,12 @@ language: es
 question: | 
   Registros obsoletos en su informe
 subquestion: |
-  ¿Cuál es la fecha del registro ${ ordinal(i) } que es demasiado antiguo para aparecer?
+  ¿Cuál es la fecha del registro ${ ordinal(i) } que es demasiado antiguo para aparecer? Los registros demasiado viejos para aparecer lo son:
+  
+  * Desalojos de más de 7 años, antes de **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Cargos criminales que no resultaron en una condena, mayor de 7 años. Estos serían antes de **${ format_date( current_datetime() - date_interval(years=7) ) }**.
+  * Quiebras de más de 10 años, antes de **${ format_date( current_datetime() - date_interval(years=10) ) }**.
+
 decoration: edit
 section: Registros Obsoletos
 fields:
@@ -611,7 +694,7 @@ subquestion: |
   Now, let's move on to records that have already been sealed.
 decoration: times
 field: found_outdated
-section: Outdated Records
+section: outd
 buttons:
   - Continue: continue
 ---
@@ -641,7 +724,7 @@ subquestion: |
   Let's move on to records that have already been sealed.
 decoration: check
 field: no_outdated
-section: Outdated Records
+section: outd
 buttons:
   - Continue: continue
 ---
@@ -670,7 +753,7 @@ subquestion: |
   
   The most common items are eviction records and criminal records.
 decoration: search
-section: Sealed Records
+section: seal
 field: accurate_items
 ---
 id: sealedintro
@@ -697,7 +780,7 @@ subquestion: |
   If a record has been sealed, it should not be appearing on your screening report.
 decoration: question
 yesno: report_accurate_sealed
-section: Sealed Records
+section: seal
 help: | 
   <br />
   In order for a record to have been sealed, you or your attorney must have asked a court to seal the record.
@@ -741,7 +824,7 @@ question: |
 subquestion: |
   How many records that have been sealed are in your report?
 decoration: list-ol
-section: Sealed Records
+section: seal
 fields:
   - Number of sealed records: sealed_records.target_number
     datatype: integer
@@ -769,7 +852,7 @@ question: |
 subquestion: |
   In a few words, can you describe the ${ ordinal(i) } sealed record?
 decoration: edit
-section: Sealed Records
+section: seal
 fields:
   - Description: sealed_records[i].nameofsealed
     datatype: area
@@ -797,7 +880,7 @@ question: |
 subquestion: |
   What is the date of the ${ ordinal(i) } sealed record?
 decoration: edit
-section: Sealed Records
+section: seal
 fields:
   - Date: sealed_records[i].dateofsealed
     hint: MM/DD/YYYY
@@ -830,7 +913,7 @@ subquestion: |
   Now, let's move on to records that you want to seal.
 decoration: times
 field: found_sealed
-section: Sealed Records
+section: seal
 buttons:
   - Continue: continue
 ---
@@ -860,7 +943,7 @@ subquestion: |
   Let's move on to records that you may want to seal.
 decoration: check
 field: no_sealed
-section: Sealed Records
+section: seal
 buttons:
   - Continue: continue
 ---
@@ -874,7 +957,7 @@ subquestion: |
   Pasemos a los registros que tal vez quiera sellar.
 decoration: check
 field: no_sealed
-section: Registros Sellados
+section: seal
 buttons:
   - Continue: continue
 ---
@@ -889,7 +972,7 @@ subquestion: |
 decoration: search
 field: seal_screen
 progress: 50
-section: Evictions
+section: evict
 ---
 id: requestsealintro
 language: es
@@ -924,7 +1007,7 @@ subquestion: |
   Do you want to try to seal an eviction on your record?
 decoration: question
 yesno: eviction_to_seal
-section: Evictions
+section: evict
 help: | 
   <br />
   Sealing the eviction will prevent the record from appearing in future screening reports.
@@ -972,7 +1055,7 @@ question: |
 subquestion: |
   How many eviction records are in your report that you want to seal?
 decoration: list-ol
-section: Evictions
+section: evict
 fields:
   - Number of eviction records: eviction_records.target_number
     datatype: integer
@@ -1000,7 +1083,7 @@ question: |
 subquestion: |
   In a few words, can you describe the ${ ordinal(i) } eviction record?
 decoration: edit
-section: Evictions
+section: evict
 fields:
   - Description: eviction_records[i].nameofeviction
     datatype: area
@@ -1028,7 +1111,7 @@ question: |
 subquestion: |
   What is the date of the ${ ordinal(i) } eviction record?
 decoration: edit
-section: Evictions
+section: evict
 fields:
   - Date: eviction_records[i].dateofeviction
     hint: MM/DD/YYYY
@@ -1061,7 +1144,7 @@ subquestion: |
   Let's move on to sealing criminal records.
 decoration: lock
 field: want_to_seal_eviction
-section: Evictions
+section: evict
 buttons:
   - Continue: continue
 ---
@@ -1091,7 +1174,7 @@ subquestion: |
   Let's move on to expunging criminal records.
 decoration: check
 field: do_not_want_to_seal_eviction
-section: Evictions
+section: evict
 buttons:
   - Continue: continue
 ---
@@ -1171,7 +1254,7 @@ subquestion: |
   Do you have criminal records in your report that you want to expunge?
 yesno: records_to_expunge
 decoration: question
-section: Criminal Records
+section: crim
 ---
 id: recordstoexpunge
 language: es
@@ -1199,7 +1282,7 @@ fields:
     datatype: integer
     required: True
     min: 1
-section: Criminal Records
+section: crim
 ---
 id: expungenumber
 language: es
@@ -1222,7 +1305,7 @@ question: |
 subquestion: | 
   In a few words, can you describe the ${ ordinal(i) } criminal record?
 decoration: edit
-section: Criminal Records
+section: crim
 fields:
   - Description: criminal_records_expunge[i].name_of_record
     datatype: area   
@@ -1255,7 +1338,7 @@ fields:
     required: True
     datatype: date
 decoration: edit
-section: Criminal Records
+section: crim
 ---
 id: expungedate
 language: es
@@ -1279,7 +1362,7 @@ subquestion: |
   Is this an arrest or charge that **did not** result in a conviction?
 decoration: edit
 yesno: criminal_records_expunge[i].no_conviction
-section: Criminal Records
+section: crim
 ---
 id: expungenoconviction
 language: es
@@ -1301,7 +1384,7 @@ subquestion: |
   We'll tell you what to do about expunging criminal records at the end of the interview.
 decoration: clipboard-list
 field: oktoexpunge
-section: Criminal Records
+section: crim
 ---
 id: oktoexpunge
 language: es
@@ -1327,7 +1410,7 @@ subquestion: |
   % endif
 decoration: check
 field: expunge_fail
-section: Criminal Records
+section: crim
 ---
 id: expungefail
 language: es
@@ -1358,7 +1441,7 @@ choices:
   - None of the above (Ninguno de los anteriores)
 decoration: clipboard-list
 required: True
-section: Criminal Records
+section: crim
 ---
 id: expungeconvictionoptions
 language: es
@@ -1385,7 +1468,7 @@ subquestion: |
   Did this record have a sentence for court supervision?
 decoration: edit
 yesno: criminal_records_expunge[i].supervision
-section: Criminal Records
+section: crim
 ---
 id: expungesupervision
 language: es
@@ -1413,7 +1496,7 @@ choices:
   - None of the above (Ninguno de los anteriores)
 decoration: clipboard-list
 required: True
-section: Criminal Records
+section: crim
 ---
 id: expungesupervisionoffenses
 language: es
@@ -1441,7 +1524,7 @@ subquestion: |
   Was your court supervision for a reckless driving charge?
 decoration: edit
 yesno: criminal_records_expunge[i].supervision_reckless_driving
-section: Criminal Records
+section: crim
 ---
 id: expungesupervisionreckless
 language: es
@@ -1460,7 +1543,7 @@ question: |
 subquestion: | 
   Are you 25 or older?
 yesno: criminal_records_expunge[i].age_check
-section: Criminal Records
+section: crim
 ---
 id: expungeagecheck
 language: es
@@ -1479,7 +1562,7 @@ subquestion: |
   Did your reckless driving supervision finish when you were under 25?
 decoration: edit
 yesno: criminal_records_expunge[i].supervision_underage
-section: Criminal Records
+section: crim
 ---
 id: expungesupervisionunderage
 language: es
@@ -1499,7 +1582,7 @@ subquestion: |
   Have at least 2 years passed since you completed your court supervision?
 decoration: edit
 yesno: criminal_records_expunge[i].supervision_two_years
-section: Criminal Records
+section: crim
 ---
 id: expungesupervisiontwo
 language: es
@@ -1519,7 +1602,7 @@ subquestion: |
   Have at least 5 years passed since you completed your court supervision?
 decoration: edit
 yesno: criminal_records_expunge[i].supervision_five_years
-section: Criminal Records
+section: crim
 ---
 id: expungesupervisionfive
 language: es
@@ -1539,7 +1622,7 @@ subquestion: |
   Did you receive an order of probation?
 decoration: edit
 yesno: criminal_records_expunge[i].probation
-section: Criminal Records
+section: crim
 ---
 id: expungeprobation
 language: es
@@ -1559,7 +1642,7 @@ subquestion: |
   Have 5 years passed since you successfully finished your probation?
 decoration: edit
 yesno: criminal_records_expunge[i].probation_five_years 
-section: Criminal Records
+section: crim
 ---
 id: expungeprobationfive
 language: es
@@ -1583,7 +1666,7 @@ subquestion: |
   Do you have any of those records in your report?
 decoration: question
 yesno: criminal_records_to_seal
-section: Criminal Records
+section: crim
 help: | 
   <br />
   Criminal convictions that fall under a specific list of misdemeanors or felonies are usually eligible to be sealed.
@@ -1643,7 +1726,7 @@ subquestion: |
   Your sentence would have finished no later than **${ format_date( current_datetime() - date_interval(years=3) ) }**.
 decoration: calendar
 yesno: criminal_records_seal[i].three_year_screen
-section: Criminal Records
+section: crim
 ---
 id: convictionthreeyears
 language: es
@@ -1676,7 +1759,7 @@ subquestion: |
   * Animal offenses, including dog fighting, beating an animal, and abandonment
 decoration: list
 yesno: criminal_records_seal[i].misdemeanor_screen
-section: Criminal Records
+section: crim
 comment: | 
   If the conviction is one of these misdemeanors, we should gather it because it could be sealed.
 ---
@@ -1719,7 +1802,7 @@ subquestion: |
   * Violation of the Methamphetamine Precursor Control Act
 decoration: list
 yesno: criminal_records_seal[i].felony_screen
-section: Criminal Records
+section: crim
 comment: | 
   If the conviction is one of these felonies, we should gather it because it could be sealed.
 ---
@@ -1751,7 +1834,7 @@ question: |
 subquestion: |
   How many criminal records that led to a conviction or supervision order are in your report?
 decoration: list-ol
-section: Criminal Records
+section: crim
 fields:
   - Number of criminal convictions: criminal_records_seal.target_number
     datatype: integer
@@ -1779,7 +1862,7 @@ question: |
 subquestion: |
   In a few words, can you describe the ${ ordinal(i) } criminal conviction?
 decoration: edit
-section: Criminal Records
+section: crim
 fields:
   - Description: criminal_records_seal[i].nameofcharge
     datatype: area   
@@ -1807,7 +1890,7 @@ question: |
 subquestion: |
   What is the date of the ${ ordinal(i) } criminal conviction?
 decoration: edit
-section: Criminal Records
+section: crim
 fields:
   - Date: criminal_records_seal[i].dateofcharge
     hint: MM/DD/YYYY
@@ -1837,7 +1920,7 @@ subquestion: |
   
   We'll tell you what to do about sealing criminal convictions at the end of the interview.
 decoration: clipboard-list
-section: Criminal Records
+section: crim
 field: at_least_one_conviction_to_seal
 ---
 id: sealingresultsconviction
@@ -1863,7 +1946,7 @@ subquestion: |
   It looks like you are not eligible to seal this conviction.
   % endif
 decoration: clipboard-list
-section: Criminal Records
+section: crim
 field: no_convictions_to_seal
 ---
 id: sealingresultsnoconviction
@@ -1894,7 +1977,7 @@ subquestion: |
   Once you receive your screening report, you can go back into this interview to learn about addressing any problems you find.
 decoration: exclamation
 event: no_mail
-section: Introduction
+section: intro
 buttons:
   - Exit: exit
   - Restart: restart
@@ -2046,7 +2129,7 @@ subquestion: |
   At this time, there are no problems with your report that can be changed.
 decoration: check
 event: all_ok
-section: Introduction
+section: intro
 buttons:
   - Exit: exit
   - Restart: restart
@@ -2072,14 +2155,13 @@ question: |
   Your action plan
 subquestion: | 
   We have processed your interview answers, and created a custom action plan for your situation. You can download that action plan below. 
-section: Finish
+section: done
 attachment:
   name: Action Plan
   filename: Action_Plan
   docx template file: plan.docx
   valid formats:
     - pdf
-    - docx
 allow emailing: True
 decoration: flag-checkered
 field: your_action_plan
@@ -2101,7 +2183,6 @@ attachment:
   docx template file: plan_es.docx
   valid formats:
     - pdf
-    - docx
 allow emailing: True
 decoration: flag-checkered
 field: your_action_plan
@@ -2119,7 +2200,7 @@ question: |
 subquestion: | 
   Thank you for using Fair Screening. If you have any questions or comments, you can contact Fair Screening at fairscreeningreports@gmail.com.
 decoration: flag-checkered
-section: Finish
+section: done
 progress: 100
 buttons:
   - Exit: exit
@@ -2147,7 +2228,7 @@ question: |
   Contact Fair Screening
 subquestion: |
   If you have any questions or comments, you can contact Fair Screening at fairscreeningreports@gmail.com.
-section: Introduction
+section: intro
 ---
 id: privacy
 event: privacy
@@ -2210,6 +2291,8 @@ subquestion: |
   We collect information from you when you register on the Site. When registering on the Site, as appropriate, you may be asked to enter your name, e-mail address, mailing address and/or phone number.
   To help us optimize the Site, we may allow other authorized third parties to place or recognize unique cookies or other tracking technology on your browser. Any information provided to third parties through cookies will not be personally identifiable information, but may provide general segment information to enhance your user experience by providing more relevant marketing. We use third-party services and tools which may send cookies to users of the Site or utilize other tracking technology to collect certain information from users.
 
+  One such third party is Hotjar, which collects information (analytics, browser information, cookie data, date/time, demographic data, hardware/software type, internet service provider, page views and interaction data) and pseudonymous data (IP Address, location based data, Clickstream Data, and device ID. Hotjar’s privacy policy can be found at: http://www.hotjar.com/privacy. For more information about the information Hotjar may collect, please inquire further at https://www.hotjar.com/contact. We do not combine the information collected through Hotjar with personally identifiable information.
+
   USE OF YOUR PERSONAL DATA
   
   Fair Screening may use your Personal Data in the following ways:
@@ -2261,7 +2344,7 @@ subquestion: |
   
   Fair Screening welcomes your comments or questions regarding this Privacy Policy. If there are any questions regarding this privacy policy or any other policies, you may contact us at fairscreeningreports@gmail.com.
 
-section: Introduction
+section: intro
 ---
 id: tos
 event: tos
@@ -2340,7 +2423,7 @@ subquestion: |
 
   CONTROLLING LAW
  
-  These Terms of Service shall be governed and construed in accordance with the laws of Iowa, excluding that State’s choiceof- law principles, and all claims relating to or arising out of this contract, or the breach thereof, whether sounding in contract, tort or otherwise, shall likewise be governed by the laws of Iowa, excluding that State’s choice-of-law principles.
+  These Terms of Service shall be governed and construed in accordance with the laws of Illinois, excluding that State’s choiceof- law principles, and all claims relating to or arising out of this contract, or the breach thereof, whether sounding in contract, tort or otherwise, shall likewise be governed by the laws of Illinois, excluding that State’s choice-of-law principles.
 
   ENTIRE AGREEMENT
  
@@ -2361,4 +2444,14 @@ subquestion: |
   CONTACTING FAIR SCREENING
  
   If you have any questions about these Terms of Service, please contact us at fairscreeningreports@gmail.com.
-section: Introduction
+section: intro
+---
+id: userlanguage
+question: | 
+  Welcome to Fair Screening.
+subquestion: | 
+  Would you like to proceed in English or Spanish? (¿Desea proceder en inglés o español?)
+choices:
+  - English: en
+  - Español: es
+field: user_language

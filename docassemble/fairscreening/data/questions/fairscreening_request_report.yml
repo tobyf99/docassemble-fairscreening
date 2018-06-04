@@ -12,12 +12,12 @@ code: |
   set_language(user_language)
 ---
 sections:
-  - Introduction
-  - Eligibility
-  - Identity
-  - Photo ID
-  - Signature
-  - Finish
+  - intro: Introduction
+  - elig: Eligibility
+  - ident: Identity
+  - photo: Photo ID
+  - sig: Signature
+  - alldone: Finish
 language: en
 ---
 sections:
@@ -52,12 +52,14 @@ code: |
     company_info[item.id] = item
     company_dropdown.append({item.id: item.name.text})
   company_info.gathered = True
-  set_title(title="Fair Screening: Request Report", short="Fair Screening", tab="Fair Screening", subtitle="Request a copy of your tenant screening report.")
+  set_title(title="Fair Screening Beta: Request Report", short="Fair Screening Beta", tab="Fair Screening Beta", subtitle="Request a copy of your tenant screening report.")
 ---
 mandatory: True
 id: userlanguage
 question: |
-  Welcome to Fair Screening. Would you prefer to proceed in English or Spanish? (Bienvenido a Fair Screening. ¿Prefiere proceder en inglés o en español?)
+  Welcome to Fair Screening. (Bienvenido a Fair Screening.)
+subquestion: | 
+  Would you like to proceed in English or Spanish? (¿Desea proceder en inglés o español?)
 field: user_language
 choices:
   - English: en
@@ -65,7 +67,86 @@ choices:
 ---
 mandatory: True
 code: | 
-  menu_items = [ action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+  if user_language == 'en':
+    menu_items = [ action_menu_item('En Espanol', 'change_language_to_spanish'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+  else:
+    menu_items = [ action_menu_item('English Version', 'change_language_to_english'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+---
+event: change_language_to_spanish
+code: |
+  user_language = 'es'
+  del menu_items
+  menu_items = [ action_menu_item('English Version', 'change_language_to_english'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+---
+event: change_language_to_english
+code: |
+  user_language = 'en'
+  del menu_items
+  menu_items = [ action_menu_item('En Espanol', 'change_language_to_spanish'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
+---
+event: intro
+section: intro
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Start screen: start_screen
+  - Disclaimer: disclaimer
+  - How does screening work: first_screen_eligible
+---
+event: elig
+section: elig
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Which of these options most closely matches your situation?: rejected_check
+  - Where in Illinois did you get rejected for a rental home?: housing_location
+  - Do you think you experienced discrimination when you were rejected?: discrimination_check
+---
+event: ident
+section: ident
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Request your screening report.: required_items
+  - What is your full name?: first_name
+  - What is your email address?: user_email
+  - What is your date of birth?: date_of_birth
+  - What is your current mailing address?: user_address.address
+  - What is your social security number?: social_security
+---
+event: photo
+section: photo
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Please upload your photo ID.: photo_id
+---
+event: sig
+section: sig
+language: en
+question: |
+  Revisit questions
+subquestion: |
+  These are the questions you have
+  answered so far in this section.  Click to revisit.
+review:
+  - Sign your name.: user_signature
 ---
 need: user_language
 id: home
@@ -74,12 +155,13 @@ prevent going back: True
 question: | 
   <h1>Fair Screening</h1>
 subquestion: | 
-  Did you get rejected for a rental home?
+  Was your application for a rental home **rejected?**
   
-  Often, landlords reject tenants based on their tenant screening reports.
+  Often, landlords reject tenants based on the results of a background check. Those results are called a **screening report**.
   
-  You can use Fair Screening to request a free copy of your report.
+  We can help! We'll work with you to help you request a free copy of your report, get to the bottom of your problem, and **avoid future rejections**.
 
+  Fair Screening follows these four steps:
   <table><tr class="table-primary"><td><h1>:question:</h1></td>
   <td><b>1. Interview</b><br />
   Answer a few questions about your housing issue.</td></tr>
@@ -94,7 +176,8 @@ subquestion: |
   We help you find and challenge problems on your report.</td></tr></table>
 decoration: building
 field: start_screen
-section: Introduction
+section: intro
+progress: 0
 buttons: 
   - Start: continue
 ---
@@ -105,11 +188,13 @@ prevent going back: True
 question: | 
   <h1>Fair Screening</h1>
 subquestion: | 
-  ¿Te rechazaron por una casa de alquiler?
+  ¿Su solicitud para una casa de alquiler fue rechazada?
   
-  A menudo, los propietarios rechazan a los inquilinos según los informes de selección de inquilinos.
+  A menudo, los propietarios rechazan a los inquilinos basándose en los resultados de una verificación de antecedentes. Estos resultados se denominan informe de cribado.
   
-  Solicite una copia <b>GRATUITA</b> de su informe.
+  Nosotros le podemos ayudar! Trabajaremos con usted para ayudarle a solicitar una copia gratuita de su informe, llegar al fondo de su problema y evitar futuros rechazos.
+
+  El Fair Screening sigue estos cuatro pasos:
 
   <table><tr class="table-primary"><td><h1>:question:</h1></td>
   <td><b>1. Entrevista</b><br />
@@ -127,6 +212,7 @@ subquestion: |
 decoration: building
 field: start_screen
 section: Introducción
+progress: 0
 buttons: 
   - Inicio: continue
 ---
@@ -141,13 +227,15 @@ subquestion: |
   
   2. Fair Screening provides legal information, **not legal advice**.
   
-  3. Fair Screening is not responsible for any errors in your screening report.
+  3. Fair Screening is not responsible for errors in your screening report.
 
-  4. You cannot use Fair Screening to view your screening report immediately. Sometimes your report may take up to **2 weeks to arrive in the mail**.  
+  4. You cannot use Fair Screening to view your screening report immediately. Your report may take several weeks to arrive in the mail.  
   
+  5. Fair Screening deletes assembled documents at the end of your browser session. We will never sell your data or share it with third parties without your consent. Read more in our [Privacy Policy](${ url_action('privacy') }).
+
 decoration: exclamation
 field: disclaimer
-section: Introduction
+section: intro
 ---
 need: start_screen
 id: disclaimer
@@ -155,14 +243,16 @@ language: es
 question: | 
   Descargo de responsabilidad
 subquestion: | 
-  
+
   1. Fair Screening no es un abogado. El uso de la Evaluación de Imparcialidad no crea una relación abogado-cliente.
   
   2. Fair Screening proporciona información legal, **no asesoramiento legal**.
   
-  3. Fair Screening no es responsable de ningún error en su informe de evaluación.
+  3. Fair Screening no es responsable de los errores en su informe de evaluación.
 
-  4. Usted no puede usar la Evaluación de Imparcialidad para ver su informe de evaluación inmediatamente. A veces su informe puede tardar hasta **2 semanas en llegar por correo**.  
+  4. Usted no puede usar la Evaluación de Imparcialidad para ver su informe de evaluación inmediatamente. Su informe puede tardar varias semanas en llegar por correo.  
+  
+  5. Fair Screening elimina los documentos ensamblados al final de la sesión de su navegador. Nunca venderemos sus datos ni los compartiremos con terceros sin su consentimiento. Lea más en nuestra[Política de privacidad](${ url_action('privacy') }).
 
 decoration: exclamation
 field: disclaimer
@@ -174,33 +264,23 @@ language: en
 question: | 
   How does screening work?
 subquestion: | 
-  First, you apply to rent a home. Then, the landlord hires a company to write a report about you. The report is called a <b>screening report</b>.
-
-  A screening report can include many kinds of information. Most reports include your credit record, and any times when you were evicted.
-decoration: edit
+  <table>
+  <tr class="table-primary"><td><h1>:clone:</h1></td>
+  <td>1. You apply to rent a home.</td></tr>
+  <tr class="table-secondary"><td><h1>:list-alt:</h1></td>
+  <td>2. The landlord hires a <b>screening company</b> to write a report about you, called the <b>screening report</b>.</td></tr>
+  <tr class="table-primary"><td><h1>:search:</h1></td>
+  <td>3. The landlord reviews your screening report.</td></tr>
+  <tr class="table-secondary"><td><h1>:book:</h1></td>
+  <td>4. Your screening report may include your credit score, evictions, criminal history, bankruptcies, and court judgments.
+  <tr class="table-primary"><td><h1>:question-circle:</h1></td>
+  <td>5. The landlord decides whether to rent the home to you, usually based on your screening report.</td></tr>
+  <tr class="table-secondary"><td><h1>:envelope:</h1></td>
+  <td>6. If you have been rejected for this reason, you can use Fair Screening to request a free copy of your screening report.</td></tr>
+  </table>
+decoration: question
 field: first_screen_eligible
-section: Introduction
-help: | 
-  <br />
-  **Tenant Screening Company**
-  
-  A tenant screening company collects records from credit reporting agencies, and federal, state, and county court databases. They use these records to put together a report for landlords and management companies. The landlords and management companies use this report to figure out whether to rent a property to a tenant.</p>
-
-  **Credit Score** 
-  
-  Your credit score is a number that represents how likely it is that you will pay back a debt. One of the most common types of credit score is the classic FICO score. The FICO score ranges from 300-850. The higher the number, the more worthy you are of receiving credit, such as a loan or a new credit card. 
-  
-  **Credit History**
-  
-  Your credit history is a record of how you have repaid your debts. The history usually includes any charge offs, collections, late payments, settlements, bankruptcies, liens, and court judgments. Negative information that is more than 7 years old should be automatically removed from your credit history. The exception are bankruptcies, which should be removed after 10 years.
-  
-  **Housing Court History**
-  
-  Your housing court history is the record of any housing court cases in which you were involved. Usually, this history includes cases in which a landlord attempted to evict you from your home. This history may also include cases in which you sued your landlord over a different issue, such as living conditions. 
-  
-  **Criminal Record**
-  
-  Your criminal record may include a multi-state sex offender registry search and criminal conviction records from all 50 states. Your record may include the offense for which you were convicted, and the sentence you received for that offense.
+section: intro
 ---
 need: disclaimer
 id: howdoesitwork1
@@ -208,343 +288,71 @@ language: es
 question: | 
   ¿Cómo funciona el cribado?
 subquestion: | 
-  Primero, usted solicita alquilar una casa. Luego, el propietario contrata a una compañía para que escriba un informe sobre usted. El informe se llama **informe de cribado**.
-  
-  Un informe de evaluación puede incluir muchos tipos de información. La mayoría de los informes incluyen su historial de crédito y las veces que fue desalojado.
-  
-decoration: edit
+  <tabla>
+  <tr class="table-primary"><td><h1>:clone:</h1></td>
+  <td>1. Usted aplica para alquilar una casa.</td></tr>
+  <tr class="table-secondary"><td><h1>:list-alt:</h1></td>
+  <td>2. El propietario contrata a una compañía de selección para que escriba un informe sobre usted, llamado informe de selección.</td></tr>.
+  <tr class="table-primary"><td><h1>:search:</h1></td>
+  <td>3. El propietario revisa su informe de revisión.</td></tr>
+  <tr class="table-secondary"><td><h1>:book:</h1></td>
+  <td>4. Su reporte de revisión puede incluir su puntaje de crédito, desalojos, historial criminal, bancarrotas y sentencias judiciales.</td></tr>
+  <tr class="table-primary"><td><h1>:question-circle:</h1></td>
+  <td>5. El propietario decide si le alquila la casa, generalmente basándose en su informe de evaluación.</td></tr>
+  <tr class="table-secondary"><td><h1>:envelope:</h1></td>
+  <td>6. Si usted ha sido rechazado por esta razón, puede usar Fair Screening para solicitar una copia gratuita de su informe de evaluación.</td></tr>
+  </table>
+decoration: question
 field: first_screen_eligible
 section: Introducción
-help: | 
-  <br />
-  **Transferencia de inquilinos**
-  
-  Una compañía de selección de inquilinos recopila registros de las agencias de informes de crédito y de las bases de datos de los tribunales federales, estatales y del condado. Utilizan estos registros para preparar un informe para los propietarios y las compañías de administración. Los propietarios y las compañías de administración utilizan este informe para determinar si deben alquilar una propiedad a un inquilino.
-
-  **Puntaje de crédito** 
-  
-  Su puntaje de crédito es un número que representa la probabilidad de que usted pague una deuda. Uno de los tipos más comunes de puntaje de crédito es el puntaje FICO clásico. La puntuación FICO oscila entre 300 y 850. Cuanto más alto sea el número, más digno será de recibir crédito, como un préstamo o una nueva tarjeta de crédito. 
-  
-  **Historial de crédito**
-  
-  Su historial de crédito es un registro de cómo ha pagado sus deudas. El historial generalmente incluye cualquier cargo, cobranza, pagos atrasados, acuerdos, bancarrotas, gravámenes y sentencias judiciales. La información negativa que tenga más de 7 años de antigüedad debe ser eliminada automáticamente de su historial de crédito. La excepción son las quiebras, que deben ser eliminadas después de 10 años.
-  
-  **Historia de la Corte de Vivienda**
-  
-  Su historia en la corte de vivienda es el registro de cualquier caso en la corte de vivienda en el que usted estuvo involucrado. Por lo general, este historial incluye casos en los que el propietario intentó desalojarlo de su casa. Esta historia también puede incluir casos en los que usted demandó al propietario por un asunto diferente, como las condiciones de vida. 
-  
-  **Registro criminal**
-  
-  Sus antecedentes penales pueden incluir una búsqueda en el registro de delincuentes sexuales de varios estados y antecedentes penales de los 50 estados. Su expediente puede incluir la ofensa por la que fue condenado y la sentencia que recibió por esa ofensa.
-
----
-id: howdoesitwork2
-language: en
-need: first_screen_eligible
-question: | 
-  How does screening work?
-subquestion: | 
-  Next, the landlord reviews your screening report.
-  
-  Based on any issues in your report, the landlord decides whether or not to rent to you.
-  
-  If you have not seen your report, you may ask for a free copy of your report **once every 12 months**. This is just like a credit report. 
-  
-  You may also ask for a copy if you have been rejected for a home because of your report. 
-decoration: search
-field: second_screen_eligible
-section: Introduction
-help: | 
-  <br />
-  **Fair Credit Reporting Act**
-  
-  The Fair Credit Reporting Act (FCRA) is a federal law that controls how consumer reporting agencies in the United States collect and control data about consumers like you.
-  
-  As FCRA relates to tenant screening, you have several key rights:
-
-  1. If a landlord or management company decides not to rent to you, they must tell you if the information from your screening report was used in this decision. 
-  2. Your landlord or management company must also give you the name, address, and phone number of the consumer reporting agency that gave them the report.
-  3. You have the right to receive a free copy of your file once every 12 months from a consumer reporting agency.
-  4. Even if you have already received a free copy of your file in the last 12 months, you have the right to a free copy of your file if:
-    * a person has taken adverse action against you because of information in your credit report
-    * you are the victim of identity theft
-    * your file contains inaccurate information because of fraud
-    * you are on public assistance
-    * you are unemployed but expect to apply for employment within 60 days
----
-id: howdoesitwork2
-language: es
-need: first_screen_eligible
-question: | 
-  ¿Cómo funciona el cribado?
-subquestion: | 
-  Luego, el propietario revisa su informe de evaluación del inquilino.
-  
-  Basado en cualquier asunto en su informe, el propietario decide si le alquila o no a usted.
-  
-  Si no ha visto su informe, puede solicitar una copia gratuita de su informe **una vez cada 12 meses**. Esto es como un informe de crédito. 
-  
-  También puede solicitar una copia si ha sido rechazado debido a su informe. 
-decoration: search
-field: second_screen_eligible
-section: Introducción
-help: | 
- <br />
-  **Ley de Informes de Crédito Justos**
-  
-  La Ley de Informes de Crédito Justos (FCRA, por sus siglas en inglés) es una ley federal que controla la forma en que las agencias de informes de crédito del consumidor en los Estados Unidos recopilan y controlan los datos sobre consumidores como usted.
-  
-  Como FCRA se relaciona con la selección de inquilinos, usted tiene varios derechos clave:
-
-  1. Si el propietario o la compañía de administración decide no alquilarle, debe informarle si la información de su informe de evaluación se utilizó en esta decisión. 
-  2. El propietario o la compañía de administración también debe darle el nombre, la dirección y el número de teléfono de la agencia de informes del consumidor que les dio el informe.
-  3. Usted tiene el derecho de recibir una copia gratuita de su archivo una vez cada 12 meses de una agencia de informes del consumidor.
-  4. Incluso si ya ha recibido una copia gratuita de su archivo en los últimos 12 meses, usted tiene derecho a una copia gratuita de su archivo si:
-    * una persona ha tomado una acción adversa contra usted debido a la información en su informe de crédito
-    * eres víctima de robo de identidad.
-    * su archivo contiene información inexacta debido a fraude
-    * usted está en asistencia pública
-    * está desempleado pero espera solicitar un empleo en un plazo de 60 días
-    
----
-id: howdoesitwork3
-language: en
-need: second_screen_eligible
-question: | 
-  How do I get a copy of my screening report?
-subquestion: |   
-  You can use this website to ask for a free copy of your report. 
-  
-  We will make sure you are eligible to receive a free copy. Then we will ask you for a few pieces of personal information. Screening companies ask for this information before they send you a copy of your report.
-
-  We will send a fax to the screening company with your information, asking for a free copy of your report.
-  
-  You will be able to review the fax before we send it out. Once we send out the fax, you should receive a copy of your screening report in the mail. Usually, you will get your report **within 2 weeks**.
-
-decoration: fax
-field: third_screen_eligible
-section: Introduction
----
-id: howdoesitwork3
-language: es
-need: second_screen_eligible
-question: | 
-  ¿Cómo obtengo una copia de mi informe de evaluación?
-subquestion: |   
-  Puede utilizar este sitio web para solicitar una copia gratuita de su informe. 
-  
-  Nos aseguraremos de que usted sea elegible para recibir una copia gratuita. A continuación, le pediremos algunos datos personales. Las compañías de selección solicitan esta información antes de enviarle una copia de su informe.
-
-  Le enviaremos un fax a la compañía de selección con su información, pidiéndole una copia gratuita de su informe.
-  
-  Usted podrá revisar el fax antes de que lo enviemos. Una vez que le enviemos el fax, debe recibir por correo una copia de su informe de evaluación. Por lo general, usted recibirá su informe **dentro de 2 semanas**.
-
-decoration: fax
-field: third_screen_eligible
-section: Introducción
----
-id: howtogetstarted
-language: en
-need: third_screen_eligible
-question: | 
-  Before you start
-subquestion: |        
-  Fair Screening is designed with your privacy in mind, and we take precautions to keep your information secure.
-  
-  We delete your interview answers and any assembled documents at the end of your browser session.
-  
-  We will never sell your data or share it with any third parties without your consent.
-  
-  Please feel free to read our [Privacy Policy](${ url_action('privacy') }) for more information.
-decoration: lock
-field: fourth_screen_eligible
-section: Introduction
----
-id: howtogetstarted
-language: es
-need: third_screen_eligible
-question: | 
-  Antes de empezar
-subquestion: |   
-  Necesitará el **nombre de la empresa** que creó su informe de cribado. También necesitará su **número de seguro social**, y una **identificación con foto**.
-decoration: id-card
-field: fourth_screen_eligible
-section: Introducción
----
-id: eligibilityintro
-language: en
-need: fourth_screen_eligible
-question: | 
-  Can I get a free report?
-subquestion: |   
-  We are going to ask you about the last time you applied for a rental home.
-
-  Based on your answers, you may be able to request a free copy of your screening report.
-decoration: list
-field: fifth_screen
-section: Eligibility
----
-id: eligibilityintro
-language: es
-need: fourth_screen_eligible
-question: | 
-  ¿Puedo obtener un informe gratuito?
-subquestion: |   
-  Vamos a preguntarle acerca de la última vez que solicitó una casa de alquiler.
-
-  Basándose en sus respuestas, es posible que pueda solicitar una copia gratuita de su informe de evaluación.
-decoration: list
-field: fifth_screen
-section: Admisibilidad
 ---
 mandatory: True
 code: | 
-  if rejected_check == True:
-    rejected_illinois
-    if rejected_illinois == True:
-      housing_location
-      if housing_location is not None:
-        discrimination_check
-        if discrimination_check == 'discriminated':
-          discrimination_problem
-        if discrimination_check == 'notdiscriminated':
+  if rejected_check == 'I was rejected for a rental home in Illinois.' or rejected_check == 'Me rechazaron para una casa de alquiler en Illinois.':
+    housing_location
+    if housing_location is not None:
+      discrimination_check
+      if discrimination_check == 'discriminated':
+        discrimination_problem
+      if discrimination_check == 'notdiscriminated':
+        know_company
+        if know_company is True:
           screening_company
           eligible_report
-      if housing_location is None:
+        elif know_company is False:
+          eligible_report
+    if housing_location is None:
         eligible_report
-    if rejected_illinois == False:
+  if rejected_check == 'I was rejected for a rental home in another state.' or rejected_check == 'Me rechazaron por una casa de alquiler en otro estado.':
+    know_company
+    if know_company is True:
       screening_company
       eligible_report
-  if rejected_check == False:
-    screening_company
-    recent_request
-    if recent_request == True:
-      identity_theft
-      if identity_theft == True:
-        eligible_report
-      if identity_theft == False:
-        public_assistance
-        if public_assistance == True:
-          eligible_report
-        if public_assistance == False:
-          unemployed
-          if unemployed == True:
-            eligible_report
-          if unemployed == False:
-            not_eligible
-    if recent_request == False:
+    if know_company is False:
       eligible_report
 ---
 id: rejectedcheck
 language: en
-need: fifth_screen
+need: first_screen_eligible
 question: | 
-  Did you get rejected for a rental home?
+  Which of these options most closely matches your situation?
 decoration: building
-yesno: rejected_check
-section: Eligibility
+field: rejected_check
+choices:
+  - I was rejected for a rental home in Illinois.
+  - I was rejected for a rental home in another state.
+section: elig
 ---
 id: rejectedcheck
 language: es
-need: fifth_screen
+need: first_screen_eligible
 question: | 
-  ¿Te rechazaron por una casa de alquiler?
+  ¿Cuál de estas opciones se ajusta más a su situación?
 decoration: building
-yesno: rejected_check
-section: Admisibilidad
----
-id: recentrequest
-language: en
-need: rejected_check
-question: | 
-  Have you requested your report from ${ company_info[screening_company].name } in the last year?
-decoration: calendar-alt
-yesno: recent_request
-section: Eligibility
----
-id: recentrequest
-language: es
-need: rejected_check
-question: | 
-  ¿Ha solicitado su informe de ${ company_info[screening_company].name } en el último año?
-decoration: calendar-alt
-yesno: recent_request
-section: Admisibilidad
----
-id: identitytheft
-language: en
-need: recent_request
-question: | 
-  Have you recently been the victim of identity theft?
-decoration: id-card
-yesno: identity_theft
-section: Eligibility
----
-id: identitytheft
-language: es
-need: recent_request
-question: | 
-  ¿Ha sido usted recientemente víctima de robo de identidad?
-decoration: id-card
-yesno: identity_theft
-section: Eligibility
----
-id: publicassistance
-language: en
-need: identity_theft
-question: | 
-  Do you receive any kind of public assistance?
-subquestion: | 
-  Public assistance includes cash or vouchers from your town, state, or the federal government.
-decoration: money-bill-alt
-yesno: public_assistance
-section: Eligibility
----
-id: publicassistance
-language: es
-need: identity_theft
-question: | 
-  ¿Recibe algún tipo de asistencia pública?
-subquestion: | 
-  La asistencia pública incluye dinero en efectivo o vales de su ciudad, estado o gobierno federal.
-decoration: money-bill-alt
-yesno: public_assistance
-section: Eligibility
----
-id: unemployed
-language: en
-need: public_assistance
-question: | 
-  Are you unemployed and planning to apply for a job in the next two months?
-decoration: briefcase
-yesno: unemployed
-section: Eligibility
----
-id: unemployed
-language: es
-need: public_assistance
-question: | 
-  ¿Está desempleado y planea solicitar un empleo en los próximos dos meses?
-decoration: briefcase
-yesno: unemployed
-section: Admisibilidad
----
-id: rejectionillinois
-language: en
-need: rejected_check
-question: |  
-  Were you rejected in Illinois?
-decoration: globe
-yesno: rejected_illinois
-section: Eligibility
----
-id: rejectionillinois
-language: es
-need: rejected_check
-question: | 
-  ¿Fuiste rechazado en Illinois?
-decoration: globe
-yesno: rejected_illinois
+field: rejected_check
+choices:
+  - Me rechazaron para una casa de alquiler en Illinois.
+  - Me rechazaron por una casa de alquiler en otro estado.
 section: Admisibilidad
 ---
 id: rejectionlocation
@@ -557,7 +365,7 @@ choices:
   - Chicago
   - Another city in Cook County
   - Somewhere else in Illinois
-section: Eligibility
+section: elig
 ---
 id: rejectionlocation
 language: es
@@ -572,58 +380,60 @@ choices:
 section: Admisibilidad
 ---
 need: rejected_check
+id: know_company
+language: en
+question: | 
+  Select a screening company.
+subquestion: | 
+  Do you know the screening company that your landlord used?
+fields:
+  - no label: know_company
+    datatype: yesnoradio
+decoration: question
+section: elig  
+---
+need: rejected_check
+id: know_company
+language: es
+question: | 
+  Seleccione una empresa de cribado.
+subquestion: | 
+  ¿Conoce la compañía de detección que usó su arrendador?
+fields:
+  - no label: know_company
+    datatype: yesnoradio
+decoration: question
+section: elig  
+---
+need: know_company
 id: screeningcompanyname
 language: en
 question: | 
   Select a screening company.
 subquestion: | 
-  % if rejected_check == True:
-  Choose the company that your landlord used to screen your application.
-  % elif rejected_check == False:
-  Even though you were not rejected for rental housing, you may still be eligible to receive a free copy of your screening report. 
-  
-  We're going to ask you a few more questions to find out.
-  
-  First, select a screening company for your report. Since you were not rejected, you can select any company from the list.
-  % endif
+  What is the name of the screening company that your landlord used?
 fields:
   - Company: screening_company
     datatype: dropdown
     code: company_dropdown
-    required: true
+    required: know_company
 decoration: question
-section: Eligibility
-help: | 
-  <br />
-  **Name of Screening Company**
-  
-  We need the name of the screening company, so that we can send your request for a free report to the right location. If you have received a letter of rejection from your landlord or management company, the letter may include the name of the screening company. If not, you can contact your landlord or management company to ask for the name of the company.
+section: elig  
 ---
-need: rejected_check
+need: know_company
 id: screeningcompanyname
 language: es
 question: | 
-  % if rejected_check == True:
-  Escoja la compañía que el propietario usó para revisar su solicitud.
-  % elif rejected_check == False:
-  A pesar de que no fue rechazado por el alquiler de una vivienda, aún puede ser elegible para recibir una copia gratuita de su informe de evaluación. 
-  
-  Vamos a hacerle algunas preguntas más para averiguarlo.
-  
-  Primero, seleccione una compañía de selección para su informe. Puesto que no fue rechazado, puede seleccionar cualquier empresa de la lista.  
-  % endif
+  Seleccione una empresa de cribado.
+subquestion: | 
+  ¿Cuál es el nombre de la compañía de detección que usó el propietario?
 fields:
   - Company: screening_company
     datatype: dropdown
     code: company_dropdown
-    required: true
+    required: know_company
 decoration: question
-section: Admisibilidad
-help: | 
-  <br />
-  **Nombre de la Compañía de Proyecciones**
-  
-  Necesitamos el nombre de la compañía de selección, para poder enviar su solicitud de un informe gratuito a la ubicación correcta. Si usted ha recibido una carta de rechazo de su propietario o compañía de administración, la carta puede incluir el nombre de la compañía de selección. Si no es así, puede ponerse en contacto con el propietario o la compañía de administración para solicitar el nombre de la compañía.
+section: elig  
 ---
 need: housing_location
 id: discriminationcheck
@@ -677,22 +487,7 @@ field: discrimination_check
 buttons:
   - Yes: discriminated
   - No: notdiscriminated
-section: Eligibility
-help: | 
-  <br />
-  **Housing Discrimination**
-  
-  It is illegal for a landlord or management company to discriminate against you because of a number of factors, including your race, national origin, religion, sex, or disability.
-  
-  For example, refusing to rent a home to you because of your race or gender is housing discrimination.
-  
-  A landlord or management company may refuse to rent to you because of information in your screening report. But, they may not refuse to rent to you because of the factors mentioned above.
-  
-  **Legal**: A landlord screens your application, then tells you that you did not pass screening because of a past eviction on your record.
-  
-  **Illegal**: A landlord screens your application, then tells you that you did not pass screening because of your disability.
-  
-  [Click here](https://www.illinoislegalaid.org/legal-information/housing-discrimination-0) to read more information on housing discrimination on Illinois Legal Aid Online.
+section: elig
 comment: | 
   The goal of this question is to give users a quick overview of housing discrimination, and direct them to ILAO resources in the event of the 
 ---
@@ -752,69 +547,8 @@ buttons:
   - Sí: discriminated
   - No: notdiscriminated
 section: Admisibilidad
-help: | 
- <br />
-  **Discriminación en la vivienda**
-  
-  Es ilegal que un propietario o una compañía de administración lo discrimine debido a una serie de factores, incluyendo su raza, origen nacional, religión, sexo o discapacidad.
-  
-  Por ejemplo, negarse a alquilarle una casa debido a su raza o género es discriminación en la vivienda.
-  
-  El propietario o la compañía de administración pueden negarse a alquilarle a usted debido a la información en su informe de evaluación. Pero, no pueden negarse a alquilarle a usted debido a los factores mencionados anteriormente.
-  
-  **Legal**: El propietario revisa su solicitud y luego le dice que usted no pasó la revisión debido a un desalojo anterior en su expediente.
-  
-  **Ilegal**: El propietario revisa su solicitud y luego le dice que usted no pasó la evaluación debido a su discapacidad.
-  
-  [Haga clic aquí](https://www.illinoislegalaid.org/legal-information/housing-discrimination-0) para leer más información sobre la discriminación en la vivienda en Illinois Legal Aid Online.
 comment: | 
   The goal of this question is to give users a quick overview of housing discrimination, and direct them to ILAO resources in the event of the 
----
-id: noteligible
-language: en
-question: | 
-  You are not eligible to request a screening report.
-subquestion: | 
-  You reported that:
-  
-  * You were not rejected for housing
-  * You requested a copy of your report from ${ company_info[screening_company].name } in the last year.
-  * You are not a victim of identity theft
-  * You are not on public assistance
-  * You have a job, or you are unemployed but not planning on applying for a job within 2 months.
-  
-  Under the Fair Credit Reporting Act, you are probably not eligible to receive a free copy of your screening report.
-
-  However, you can still contact ${ company_info[screening_company].name } at ${ company_info[screening_company].phone_number } for more information.
-decoration: exclamation
-event: not_eligible
-section: Eligibility
-buttons:
-  - Exit: exit
-  - Restart: restart
----
-id: noteligible
-language: es
-question: | 
-  Usted no es elegible para solicitar un informe de evaluación.
-subquestion: | 
-  Tú informaste de eso:
-  
-  * No fuiste rechazado por alojamiento.
-  * Usted solicitó una copia de su informe a ${ company_info[screening_company].name } en el último año.
-  * Usted no es una víctima de robo de identidad.
-  * No está recibiendo asistencia pública.
-  * Usted tiene un trabajo, o está desempleado pero no planea solicitar un trabajo dentro de 2 meses.
-  
-  Bajo el Acta de Reporte Justo de Crédito (Fair Credit Reporting Act), usted probablemente no es elegible para recibir una copia gratis de su reporte de revisión.
-
-  Sin embargo, puede ponerse en contacto con ${ company_info[screening_company].name } en ${ company_info[screening_company].phone_number } para obtener más información.
-decoration: exclamation
-event: noteligible
-section: Admisibilidad
-buttons:
-  - Salir: exit
-  - Reinicio: restart
 ---
 id: discriminationproblem
 language: en
@@ -826,7 +560,7 @@ subquestion: |
   We recommend that you visit [Illinois Legal Aid Online](https://www.illinoislegalaid.org/legal-information/housing-discrimination-0) to read more about housing discrimination in Illinois, including how to file a complaint with local or state authorities.
 decoration: exclamation
 event: discrimination_problem
-section: Eligibility
+section: elig
 buttons:
   - Exit: exit
   - Restart: restart
@@ -844,52 +578,32 @@ event: discrimination_problem
 section: Admisibilidad
 buttons:
   - Salir: exit
-  - Reinicio: restart
+  - Reiniciar: restart
 ---
 id: eligibleapplicationrejected
 language: en
 question: | 
   You can request a free screening report.
 subquestion: | 
-  % if rejected_check == True:
   You are eligible to request a copy of your screening report, because you were rejected for housing.
-  % elif recent_request == False:
-  You are eligible to request a copy of your screening report, because you have not requested a copy of your report in the last year.
-  % elif identity_theft == True:
-  You are eligible to request a copy of your screening report, because you are a victim of identity theft.
-  % elif public_assistance == True:
-  You are eligible to request a copy of your screening report, because you receive public assistance.
-  % elif unemployed == True:
-  You are eligible to request a copy of your screening report, because you are unemployed. You also expect to apply for a job within 2 months.
-  % else:
-  % endif
   
-  The next step is to request a copy of your screening report.
+  % if know_company is True:
+  We will send out a request to the screening company you selected.
   
+  % elif know_company is False:
+  Because you don't know the screening company that your landlord used, we will send out requests to all of the companies listed on Fair Screening.
+  
+  %endif
 decoration: check
 field: eligible_report
-section: Eligibility
+section: elig
 ---
 id: eligibleapplicationrejected
 language: es
-question: | 
+question: |
   Puede solicitar un informe de evaluación gratuito.
-subquestion: | 
-  % if rejected_check == True:
-  Usted es elegible para solicitar una copia de su informe de evaluación, porque fue rechazado para la vivienda.
-  % elif recent_request == False:
-  Usted es elegible para solicitar una copia de su informe de evaluación, porque no ha solicitado una copia de su informe en el último año.
-  % elif identity_theft == True:
-  Usted es elegible para solicitar una copia de su informe de evaluación, porque es víctima de robo de identidad.
-  % elif public_assistance == True:
-  Usted es elegible para solicitar una copia de su informe de evaluación, porque recibe asistencia pública.
-  % elif unemployed == True:
-  Usted es elegible para solicitar una copia de su informe de evaluación, porque está desempleado. También espera solicitar un empleo en un plazo de 2 meses.
-  % else:
-  % endif
-  
-  El siguiente paso es solicitar una copia de su informe de evaluación.
-  
+subquestion: |
+  Usted es elegible para solicitar una copia de su informe de evaluación, porque fue rechazado para la vivienda. 
 decoration: check
 field: eligible_report
 section: Admisibilidad
@@ -906,11 +620,13 @@ subquestion: |
   
   % if not user_logged_in():
   We also need you to log in or register for an account on the next screen. Registration is **free**.
+  
+  Once you have an account, you can leave Fair Screening and return any time to finish the interview.
   % endif
 decoration: edit
 field: first_screen_request
 progress: 50
-section: Identity
+section: ident
 ---
 id: requestintro
 language: es
@@ -924,6 +640,8 @@ subquestion: |
   
   % if not user_logged_in():
   También necesitamos que inicie sesión o se registre para obtener una cuenta en la siguiente pantalla. El registro es **libre**.
+  
+  Una vez que tenga una cuenta, puede salir de Fair Screening y regresar en cualquier momento para terminar la entrevista.
   % endif
 decoration: edit
 field: first_screen_request
@@ -943,11 +661,13 @@ question: |
 subquestion: |
   In order to request a free copy of your screening report, you are going to need a Fair Screening account.
   
+  Once you have an account, you can leave Fair Screening and return any time to finish the interview.
+
   Click the Log in button below to register for a new account or log in to your existing account.
 buttons:
   - Log in: signin
   - Exit: exit
-section: Identity
+section: ident
 comment: | 
   This event forces the user to sign in for the interview. 
   Sign in is required to save interview data, which is in turn required to send out a followup email later.
@@ -960,6 +680,8 @@ question: |
 subquestion: |
   Con el fin de solicitar una copia gratuita de su informe de evaluación, usted va a necesitar una cuenta de evaluación justa.
   
+  Una vez que tenga una cuenta, puede salir de Fair Screening y regresar en cualquier momento para terminar la entrevista.
+
   Haga clic en el botón Iniciar sesión que aparece a continuación para registrarse para obtener una cuenta nueva o para iniciar sesión en su cuenta existente.
 buttons:
   - Iniciar sesión: signin
@@ -975,67 +697,37 @@ language: en
 question: | 
   Request your screening report.
 subquestion: | 
-  Before you continue, you will need your social security number and a photo ID. 
-  
-  If you are on a phone, we can **take a picture of your ID** with your camera. 
-  
-  If you are on a computer, you can **upload a scanned copy of your ID**.
-decoration: id-card
+  Before you continue, you will need the following:
+ 
+  <table><tr class="table-primary"><td><h1>:pencil-alt:</h1></td>
+  <td><b>Social security number (SSN) or individual taxpayer identification number (ITIN)</b></td></tr>
+  <tr class="table-secondary"><td><h1>:id-card:</h1></td>
+  <td><b>Photo ID, such as a driver's license or passport</b></td></tr>
+  <tr class="table-primary"><td><h1>:mobile-alt:</h1></td>
+  <td><b>Mobile device or scanner to take a picture of your ID</b></td></tr></table>
+
+decoration: list-ol
 field: required_items
-section: Identity
-help: | 
-  <br />
-  **Social Security Number**
-  
-  Most screening companies store records based on social security number. You need to provide a social security number to retrieve a copy of your report. If you do not have a social security number, a tenant screening company does not keep a file on you.
-  
-  **Government Photo ID**
-  
-  Most screening companies require a copy of a government photo ID in order to verify your identity. Acceptable photo IDs usually include:
-
-  * Driver's license
-  * State ID
-  * U.S. passport book or passport card
-  * Certificate of naturalization/citizenship
-  * Certificate of citizenship
-  * Permanent resident card (green card)
-  * Government employee ID
-  * U.S. military ID
-
+section: ident
 ---
 need: first_screen_request
 id: idcheck
 language: es
 question: | 
-  Solicite su informe de evaluación.
+  Request your screening report.
 subquestion: | 
-  Antes de continuar, necesitará su número de seguro social y una identificación con foto. 
-  
-  Si usted está en un teléfono, podemos **tomar una foto de su identificación** con su cámara. 
-  
-  Si está en una computadora, puede **cargar una copia escaneada de su ID**.
-decoration: id-card
+  Antes de continuar, necesitará lo siguiente:
+ 
+  <table><tr class="table-primary"><td><h1>:pencil-alt:</h1></td>
+  Número de seguro social (SSN) o número de identificación del contribuyente individual (ITIN) </b></td></tr>
+  <tr class="table-secondary"><td><h1>:id-card:</h1></td>
+  <td><b>Identificación con fotografía, como licencia de conducir o pasaporte </b></td></tr>.
+  <tr class="table-primary"><td><h1>:mobile-alt:</h1></td>
+  <td><b>Dispositivo móvil o escáner para tomar una imagen de su ID </b></td></tr></table>
+
+decoration: list-ol
 field: required_items
 section: Identidad
-help: | 
-  <br />
-  **Número de Seguro Social**
-  
-  La mayoría de las compañías de selección almacenan registros basados en el número de seguro social. Necesita proporcionar un número de seguro social para obtener una copia de su informe. Si usted no tiene un número de seguro social, una compañía de selección de inquilinos no mantiene un archivo sobre usted.
-  
-  **Identificación con foto del gobierno**
-  
-  La mayoría de las compañías de detección requieren una copia de una identificación con foto del gobierno para verificar su identidad. Las identificaciones con foto aceptables por lo general incluyen:
-
-  * Licencia de conducir
-  * ID del estado
-  * Libreta de pasaporte de EE.UU. o tarjeta de pasaporte
-  * Certificado de naturalización/ciudadanía
-  * Certificado de ciudadanía
-  * Tarjeta de residencia permanente (tarjeta verde)
-  * Identificación de empleado del gobierno
-  * Identificación militar de los EE.UU.
-
 ---
 need: required_items
 id: name
@@ -1052,7 +744,7 @@ fields:
   - Last name: last_name
     required: True
     hint: Doe
-section: Identity
+section: ident
 ---
 need: required_items
 id: name
@@ -1086,7 +778,7 @@ fields:
     required: True
     hint: jane@doe.com
     datatype: email
-section: Identity
+section: ident
 ---
 need:
   - first_name
@@ -1115,7 +807,7 @@ fields:
      hint: MM/DD/YYYY
      required: True
      datatype: date
-section: Identity
+section: ident
 ---
 need: user_email
 id: dob
@@ -1150,7 +842,7 @@ fields:
     required: True
   - Zip: user_address.zip
     required: True
-section: Identity
+section: ident
 ---
 need: date_of_birth
 id: mailingaddress
@@ -1184,15 +876,40 @@ language: en
 question: | 
   What is your social security number?
 subquestion: | 
-  Screening companies usually require your social security number to release your screening report.
+  Screening companies usually require your Social Security Number (SSN) to release your screening report.
   
-  We will never sell your social security number or share it with third parties without your consent.
+  If you do not have an SSN, you can also provide an Individual Taxpayer Identification Number (ITIN).
+  
+  We will never sell or share your SSN or ITIN with third parties without your consent.
 decoration: id-card
 fields:
-  - Social Security Number: social_security
-    hint: ###-##-####
-    required: True
-section: Identity
+  - SSN or ITIN: social_security
+section: ident
+script: | 
+  <script>
+  document.getElementById("c29jaWFsX3NlY3VyaXR5").onkeyup = function() {
+  var val = this.value.replace(/\D/g, '');
+  var newVal = '';
+
+  if(val.length > 4) {
+    this.value = val;
+  }
+
+  if((val.length > 3) && (val.length < 6)) {
+    newVal += val.substr(0, 3) + '-';
+    val = val.substr(3);
+  }
+
+  if (val.length > 5) {
+    newVal += val.substr(0, 3) + '-';
+    newVal += val.substr(3, 2) + '-';
+    val = val.substr(5);
+  }
+
+  newVal += val;
+  this.value = newVal;
+  };
+  </script>
 ---
 need:
   - user_address.address
@@ -1204,15 +921,40 @@ language: es
 question: | 
   ¿Cuál es su número de seguro social?
 subquestion: |
-  Las compañías de detección por lo general requieren su número de seguro social para divulgar su informe de detección.
-
-  Nunca venderemos su número de seguro social ni lo compartiremos con terceros sin su consentimiento.
+  Las compañías de detección por lo general requieren que su Número de Seguro Social (SSN) divulgue su informe de detección.
+  
+  Si no tiene un SSN, también puede proporcionar un Número de Identificación del Contribuyente Individual (ITIN).
+  
+  Nunca venderemos o compartiremos su SSN o ITIN con terceros sin su consentimiento.
 decoration: id-card
 fields:
-  - Número de Seguro Social: social_security
-    hint: ###-##-####
-    required: True
+  - SSN o ITIN: social_security
 section: Identidad
+script: | 
+  <script>
+  document.getElementById("c29jaWFsX3NlY3VyaXR5").onkeyup = function() {
+  var val = this.value.replace(/\D/g, '');
+  var newVal = '';
+
+  if(val.length > 4) {
+    this.value = val;
+  }
+
+  if((val.length > 3) && (val.length < 6)) {
+    newVal += val.substr(0, 3) + '-';
+    val = val.substr(3);
+  }
+
+  if (val.length > 5) {
+    newVal += val.substr(0, 3) + '-';
+    newVal += val.substr(3, 2) + '-';
+    val = val.substr(5);
+  }
+
+  newVal += val;
+  this.value = newVal;
+  };
+  </script>
 ---
 need: 
   - social_security
@@ -1230,7 +972,7 @@ fields:
     datatype: file
     validate: |
       lambda y: validation_error("This file has multiple pages. Please limit your file upload to one page only.") if y.num_pages() > 1 else True
-section: Photo ID
+section: photo
 comment: | 
   This is the question where the user uploads a photo of their ID.
   If the user is accessing the app on a smartphone, the app will access the smartphone camera to take a picture.
@@ -1248,7 +990,7 @@ subquestion: |
   Por lo general, las compañías de detección requieren una copia de una identificación del gobierno para divulgar su informe de detección.
 decoration: id-card
 fields:
-  - Imagen: photo_id
+  - Picture: photo_id
     datatype: file
     validate: |
       lambda y: validation_error("This file has multiple pages. Please limit your file upload to one page only.") if y.num_pages() > 1 else True
@@ -1268,7 +1010,7 @@ subquestion: |
 field: upload_success
 buttons:
   - Continue: continue
-section: Photo ID
+section: photo
 comment: | 
   This screen tells the user that the photo upload was a success, and displays an image of the uploaded ID.
 ---
@@ -1290,15 +1032,15 @@ need: upload_success
 id: signature
 language: en
 question: |
-  Sign your name
+  Sign your name.
 subquestion: |
   Your signature will be used to sign the faxed letter to the screening company, requesting a copy of your screening report.
 decoration: pencil-alt
 signature: user_signature
-section: Signature
+section: sig
 under: |
   ${ first_name } ${ middle_name } ${ last_name }
-comments: | 
+comment: | 
   This question allows the user to electronically sign the letter.
 ---
 need: upload_success
@@ -1313,7 +1055,7 @@ signature: user_signature
 section: Firma
 under: |
   ${ first_name } ${ middle_name } ${ last_name }
-comments: | 
+comment: | 
   This question allows the user to electronically sign the letter.
 ---
 need: user_signature
@@ -1324,74 +1066,17 @@ question: |
 subquestion: | 
   Your request is ready! 
   
-  Review the document, and if everything looks good, click Continue. 
+  Review the document, and if everything looks good, click **Continue** below. Fair Screening will send a fax to the screening company with your request.
   
-  Fair Screening will send a fax to the screening company with your request.
+  ${ request_to_fax }
+fields:
+  - no label: email_followup
+    choices:
+      - Email me in two weeks to make sure I have received my screening report.
+      - No need to email me, I can follow up on my own.
+    default: Email me in two weeks to make sure I have received my screening report.
 decoration: file
-section: Finish
-attachment:
-  - name: ${ first_name } ${ last_name }'s Request for Tenant Screening Report
-    filename: request_for_screening_report
-    variable name: request_to_fax
-    language: en
-    description: | 
-      Your fax to request a free copy of your tenant screening report.
-    content: | 
-      [SINGLESPACING]
-      [NEWPAR]
-      **FAX COVER SHEET**
-      [SKIPLINE]
-      [SKIPLINE]
-      [NEWPAR]
-      **TO:** ${ company_info[screening_company].fax_number }
-      [NEWPAR]
-      **FROM:** ${ user_email }
-      [NEWPAR]
-      **SUBJECT**: Request for ${ first_name } ${ middle_name } ${ last_name }'s file disclosure
-      [NEWPAR]
-      **DATE:** ${ format_date(today()) }
-      [PAGEBREAK]
-      ${ first_name } ${ middle_name } ${ last_name }
-      [BR]
-      ${ user_address.address }, ${ user_address.unit }
-      [BR]
-      ${ user_address.city }, ${ user_address.state } ${ user_address.zip }
-      [NEWPAR]
-      ${ format_date(today()) }
-      [NEWPAR]
-      ${ company_info[screening_company].address_block() }
-      [SKIPLINE]
-      [NEWPAR]
-      To Whom It May Concern:
-      [SKIPLINE]
-      [NEWPAR]
-      I am writing to request a free copy of my file disclosure, including my tenant screening report. Under the Fair Credit Reporting Act, I am entitled to a free file disclosure because a landlord took adverse action against me based on information in my report. The required information is below:
-      [SKIPLINE]
-      [NEWPAR]
-      Full Name: ${ first_name } ${ middle_name } ${ last_name }
-      [BR]
-      Current Address: ${ user_address.address } ${ user_address.unit }, ${ user_address.city }, ${ user_address.state } ${ user_address.zip }
-      [BR]
-      Social Security Number: ${ social_security }
-      [BR]
-      Date of Birth: ${ date_of_birth }
-      [BR]
-      Email: ${ user_email }
-      [SKIPLINE]
-      [NEWPAR]
-      I have also included a copy of my government photo ID, for identity verification:
-      [BR]
-      ${ photo_id.show(width='4in') }
-      [NEWPAR]
-      Sincerely,
-      [BR]
-      ${ user_signature.show(width='2in') }
-      [NEWPAR]
-      ${ first_name } ${ middle_name } ${ last_name }
-field: request_ready
-allow emailing: False
-buttons:
-  - Continue: continue
+section: alldone
 ---
 need: user_signature
 id: requestready
@@ -1401,87 +1086,108 @@ question: |
 subquestion: | 
   Su solicitud está lista! 
   
-  Revise el documento y, si todo se ve bien, haga clic en Continuar. 
-  
-  Fair Screening enviará un fax a la compañía de selección con su solicitud.
+  Revise el documento, y si todo se ve bien, haga clic en **Continuar** a continuación.   Fair Screening enviará un fax a la compañía de selección con su solicitud.
+ 
+    
+  ${ request_to_fax }
+fields:
+  - no label: email_followup
+    choices:
+      - Envíeme un correo electrónico dentro de dos semanas para asegurarse de que he recibido mi informe de evaluación.
+      - No es necesario que me envíe un correo electrónico, puedo hacer un seguimiento por mi cuenta.
+    default: Envíeme un correo electrónico dentro de dos semanas para asegurarse de que he recibido mi informe de evaluación.
 decoration: file
 section: Acabado
+---
 attachment:
-  - name: ${ first_name } ${ last_name }'s solicitud de informe de evaluación de inquilinos
-    filename: request_for_screening_report
-    variable name: request_to_fax
-    language: en
-    description: | 
-      Su fax para solicitar una copia gratuita de su informe de evaluación del inquilino.
-    content: | 
-      [SINGLESPACING]
-      [NEWPAR]
-      **FAX COVER SHEET**
-      [SKIPLINE]
-      [SKIPLINE]
-      [NEWPAR]
-      **TO:** ${ company_info[screening_company].fax_number }
-      [NEWPAR]
-      **FROM:** ${ user_email }
-      [NEWPAR]
-      **SUBJECT**: Request for ${ first_name } ${ middle_name } ${ last_name }'s file disclosure
-      [NEWPAR]
-      **DATE:** ${ format_date(today()) }
-      [PAGEBREAK]
-      ${ first_name } ${ middle_name } ${ last_name }
-      [BR]
-      ${ user_address.address }, ${ user_address.unit }
-      [BR]
-      ${ user_address.city }, ${ user_address.state } ${ user_address.zip }
-      [NEWPAR]
-      ${ format_date(today()) }
-      [NEWPAR]
-      ${ company_info[screening_company].address_block() }
-      [SKIPLINE]
-      [NEWPAR]
-      To Whom It May Concern:
-      [SKIPLINE]
-      [NEWPAR]
-      I am writing to request a free copy of my file disclosure, including my tenant screening report. Under the Fair Credit Reporting Act, I am entitled to a free file disclosure because a landlord took adverse action against me based on information in my report. The required information is below:
-      [SKIPLINE]
-      [NEWPAR]
-      Full Name: ${ first_name } ${ middle_name } ${ last_name }
-      [BR]
-      Current Address: ${ user_address.address } ${ user_address.unit }, ${ user_address.city }, ${ user_address.state } ${ user_address.zip }
-      [BR]
-      Social Security Number: ${ social_security }
-      [BR]
-      Date of Birth: ${ date_of_birth }
-      [BR]
-      Email: ${ user_email }
-      [SKIPLINE]
-      [NEWPAR]
-      I have also included a copy of my government photo ID, for identity verification:
-      [BR]
-      ${ photo_id.show(width='4in') }
-      [NEWPAR]
-      Sincerely,
-      [BR]
-      ${ user_signature.show(width='2in') }
-      [NEWPAR]
-      ${ first_name } ${ middle_name } ${ last_name }
-allow emailing: False
-field: request_ready
-buttons:
-  - Continuar: continue
+  name: ${ first_name } ${ last_name }'s Request for Tenant Screening Report
+  filename: request_for_screening_report
+  variable name: request_to_fax
+  content: | 
+    [SINGLESPACING]
+    [NEWPAR]
+    **FAX COVER SHEET**
+    [SKIPLINE]
+    [SKIPLINE]
+    % if know_company is False:
+    [NEWPAR]
+    % else:
+    [NEWPAR]
+    **TO:** ${ company_info[screening_company].fax_number }
+    [NEWPAR]
+    % endif
+    **FROM:** ${ user_email }
+    [NEWPAR]
+    **SUBJECT**: Request for ${ first_name } ${ middle_name } ${ last_name }'s file disclosure
+    [NEWPAR]
+    **DATE:** ${ format_date(today()) }
+    [PAGEBREAK]
+    ${ first_name } ${ middle_name } ${ last_name }
+    [BR]
+    ${ user_address.address }, ${ user_address.unit }
+    [BR]
+    ${ user_address.city }, ${ user_address.state } ${ user_address.zip } 
+    [NEWPAR]
+    ${ format_date(today()) }
+    % if know_company is False:
+    [NEWPAR]
+    % else:
+    [NEWPAR]
+    ${ company_info[screening_company].address_block() }
+    % endif
+    [SKIPLINE]
+    [NEWPAR]
+    To Whom It May Concern:
+    [SKIPLINE]
+    [NEWPAR]
+    I am writing to request a free copy of my file disclosure, including my tenant screening report. Under the Fair Credit Reporting Act, I am entitled to a free file disclosure because a landlord took adverse action against me based on information in my report. The required information is below:
+    [SKIPLINE]
+    [NEWPAR]
+    Full Name: ${ first_name } ${ middle_name } ${ last_name }
+    [BR]
+    Current Address: ${ user_address.address } ${ user_address.unit }, ${ user_address.city }, ${ user_address.state } ${ user_address.zip }
+    [BR]
+    SSN or ITIN: ${ social_security }
+    [BR]
+    Date of Birth: ${ date_of_birth }
+    [BR]
+    Email: ${ user_email }
+    [SKIPLINE]
+    [NEWPAR]
+    I have also included a copy of my government photo ID, for identity verification:
+    [BR]
+    ${ photo_id.show(width='4in') }
+    [NEWPAR]
+    Sincerely,
+    [BR]
+    ${ user_signature.show(width='2in') }
+    [NEWPAR]
+    ${ first_name } ${ middle_name } ${ last_name }
+  valid formats: 
+    - pdf
 ---
 mandatory: True
 code: |
-  send_fax(str(company_info[screening_company].fax_number), request_to_fax)
----
-mandatory: True
-code: | 
-  send_email(to=user_email, template=notification)
+  need(email_followup)
+  if know_company is False:
+    send_fax('3129326479', request_to_fax)
+    send_fax('3129326479', request_to_fax)
+    send_fax('3129326479', request_to_fax)
+    send_fax('3129326479', request_to_fax)
+    send_fax('3129326479', request_to_fax)
+    send_fax('3129326479', request_to_fax)
+    send_fax('3129326479', request_to_fax)
+    send_fax('3129326479', request_to_fax)
+  else:
+    send_fax(str(company_info[screening_company].fax_number), request_to_fax)
+  send_email(to=user_email, template=notification, attachments=request_to_fax)
+  if email_followup is 'Email me in two weeks to make sure I have received my screening report.' or 'Envíeme un correo electrónico dentro de dos semanas para asegurarse de que he recibido mi informe de evaluación.':
+    send_email(to='tobyfranklin@gmail.com', template=remindertofollowup)
 ---
 mandatory: True
 prevent going back: True
 id: finish
-need: request_ready
+need: email_followup
 question: |
   % if user_language == 'en':
   You're done!
@@ -1489,39 +1195,83 @@ question: |
   ¡Estás acabado!
   % endif
 subquestion: |
-  % if user_language == 'en' and rejected_illinois == True:
+
+  % if user_language == 'en' and rejected_check == 'I was rejected for a rental home in Illinois.' and know_company is True:
   We sent your fax to ${ company_info[screening_company].name }, and they will be processing your free request for a screening report.
   
   By ${ format_date( current_datetime() + date_interval(weeks=2) ) }, you should receive a copy of your screening report in the mail, from ${ company_info[screening_company].name }. 
   
-  Also, you'll get an email on ${ format_date( current_datetime() + date_interval(weeks=2) ) } to make sure you received your report. The email will include a link to an interview where you can fix:
+  Also, you'll get an email with a link to an interview where you can fix:
   
   * Records with mistakes
   * Records that are too old to appear
   * Records you sealed that are still appearing on your report
   * Records you want to ask a court to seal
 
-  % elif user_language == 'en' and rejected_illinois == False:
+  **Fair Screening is in beta right now, and we'd love to hear more about your experience. If you have a minute, [please fill out our anonymous, 7 question survey.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+  
+  % elif user_language == 'en' and rejected_check == 'I was rejected for a rental home in Illinois.' and know_company is False:
+  We sent your fax to all of the screening companies on our list, and they will be processing your free request for a screening report.
+  
+  Also, you'll get an email with a link to an interview where you can fix:
+  
+  * Records with mistakes
+  * Records that are too old to appear
+  * Records you sealed that are still appearing on your report
+  * Records you want to ask a court to seal
+
+  **Fair Screening is in beta right now, and we'd love to hear more about your experience. If you have a minute, [please fill out our anonymous survey.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+  
+  % elif user_language == 'en' and rejected_check != 'I was rejected for a rental home in Illinois.' and know_company is True:
   We sent your fax to ${ company_info[screening_company].name }, and they will be processing your free request for a screening report.
   
   By ${ format_date( current_datetime() + date_interval(weeks=2) ) }, you should receive a copy of your screening report in the mail, from ${ company_info[screening_company].name }. 
   
-  % elif user_language == 'es' and rejected_illinois == True:
+  **Fair Screening is in beta right now, and we'd love to hear more about your experience. If you have a minute, [please fill out our anonymous survey.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+  
+  % elif user_language == 'en' and rejected_check != 'I was rejected for a rental home in Illinois.' and know_company is False:
+  We sent your fax to all of the screening companies on our list, and they will be processing your free request for a screening report.
+  
+  **Fair Screening is in beta right now, and we'd love to hear more about your experience. If you have a minute, [please fill out our anonymous survey.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+  
+  % elif user_language == 'es' and rejected_check == 'Me rechazaron para una casa de alquiler en Illinois.' and know_company is True:
   Enviamos su fax a ${ company_info[screening_company].name }, y ellos procesarán su solicitud gratuita de un informe de screening.
   
   Para ${ format_date( current_datetime() + date_interval(weeks=2)) }, debe recibir una copia de su informe de evaluación por correo, de ${ company_info[screening_company].name }. 
   
-  Además, recibirá un correo electrónico en ${ format_date( current_datetime() + date_interval(weeks=2) ) } para asegurarse de que ha recibido su informe. El correo electrónico incluirá un enlace a una entrevista donde se puede arreglar:
+  Además, recibirás un correo electrónico con un enlace a una entrevista donde podrás arreglarlo:
   
   * Registros con errores
   * Registros que son demasiado viejos para aparecer.
   * Registros sellados que todavía aparecen en su informe
   * Registros que quiere pedirle a la corte que selle
   
-  % elif user_language == 'es' and rejected_illinois == False:
+  Fair Screening está en beta ahora mismo, y nos encantaría saber más sobre su experiencia. Si tiene un minuto, [por favor llene nuestra encuesta anónima.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+  
+  % elif user_language == 'es' and rejected_check == 'Me rechazaron para una casa de alquiler en Illinois.' and know_company is False:
+  Enviamos su fax a todas las compañías de selección de nuestra lista, y ellas procesarán su solicitud gratuita de un informe de selección.
+    
+  Además, recibirás un correo electrónico con un enlace a una entrevista donde podrás arreglarlo:
+  
+  * Registros con errores
+  * Registros que son demasiado viejos para aparecer.
+  * Registros sellados que todavía aparecen en su informe
+  * Registros que quiere pedirle a la corte que selle
+  
+  Fair Screening está en beta ahora mismo, y nos encantaría saber más sobre su experiencia. Si tiene un minuto, [por favor llene nuestra encuesta anónima.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+
+  % elif user_language == 'es' and rejected_check != 'Me rechazaron para una casa de alquiler en Illinois.' and know_company is True:
   Enviamos su fax a ${ company_info[screening_company].name }, y ellos procesarán su solicitud gratuita de un informe de screening.
   
   Para ${ format_date( current_datetime() + date_interval(weeks=2)) }, debe recibir una copia de su informe de evaluación por correo, de ${ company_info[screening_company].name }. 
+  
+  Fair Screening está en beta ahora mismo, y nos encantaría saber más sobre su experiencia. Si tiene un minuto, [por favor llene nuestra encuesta anónima.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+  
+  % elif user_language == 'es' and rejected_check != 'Me rechazaron para una casa de alquiler en Illinois.' and know_company is False:
+  Enviamos su fax a todas las compañías de selección de nuestra lista, y ellas procesarán su solicitud gratuita de un informe de selección.
+    
+  Fair Screening está en beta ahora mismo, y nos encantaría saber más sobre su experiencia. Si tiene un minuto, [por favor llene nuestra encuesta anónima.](https://tobyfranklin.typeform.com/to/Od9xsI)**
+  
   % endif
  
 decoration: flag-checkered
@@ -1529,6 +1279,13 @@ progress: 100
 buttons:
   - Exit: exit
   - Restart: restart
+---
+template: remindertofollowup
+language: en
+subject: |
+  Follow up reminder
+content: |
+  Follow up with ${ first_name } ${ last_name } at ${ user_email }, on ${ format_date( current_datetime() + date_interval(weeks=2)) }.
 ---
 template: notification
 language: en
@@ -1539,14 +1296,19 @@ content: |
   
   This is a note from Fair Screening. You used our website on ${ format_date( current_datetime() - date_interval(weeks=2) ) } to request a free copy of your tenant screening report.
   
+  % if know_company is True:
   Within the next two weeks, you should receive a copy of your screening report in the mail.
   
-  If you never received your report, contact ${ company_info[screening_company].name } at ${ company_info[screening_company].phone_number }.
+  If you don't receive your report, contact ${ company_info[screening_company].name } at ${ company_info[screening_company].phone_number }. We have attached a copy of your request to this email, for your reference.
   
-  % if rejected_illinois == True:
+  % else:
+  
+  % endif
+
+  % if rejected_check == 'I was rejected for a rental home in Illinois.':
   If you did receive your report in the mail, we can help you review the document and identify mistakes, outdated records, or other records that are eligible to be removed. 
   
-  [Click here to start the review of your screening report.](${ interview_url(i='docassemble.playground1:fairscreening_followup.yml') })
+  When you receive your screening report in the mail, you can [start the review of your screening report.](${ interview_url(i='docassemble.playground1:fairscreening_followup.yml') })
   % endif
   
   If you have any questions or concerns, you can email us at fairscreeningreports@gmail.com.
@@ -1564,16 +1326,21 @@ subject: |
 content: |
   Hola ${ first_name },
   
-  Esta es una nota de Fair Screening. Usted usó nuestro sitio web en ${ format_date( current_datetime() - date_interval(weeks=2)) } solicitar una copia gratuita de su informe de evaluación del inquilino.
+  Esta es una nota de Fair Screening. Usted usó nuestro sitio web en ${ format_date( current_datetime() - date_interval(weeks=2)) } solicitar una copia gratuita de su informe de evaluación del inquilino. Hemos adjuntado una copia de su solicitud a este correo electrónico, para su referencia.
   
+  % if know_company is True:
   Dentro de las próximas dos semanas, usted debe recibir por correo una copia de su informe de evaluación.
   
-  Si nunca recibió su informe, póngase en contacto con ${ company_info[screening_company].name } en ${ company_info[screening_company].phone_number }.
+  Si no recibe su informe, póngase en contacto con ${ company_info[screening_company].name } en ${ company_info[screening_company].phone_number }.
   
-  % if rejected_illinois == True:
+  % else:
+  
+  % endif
+  
+  % if rejected_check == 'Me rechazaron para una casa de alquiler en Illinois.':
   Si recibió su informe por correo, podemos ayudarlo a revisar el documento e identificar errores, registros obsoletos u otros registros que son elegibles para ser eliminados. 
   
-  [Haga clic aquí para comenzar la revisión de su informe de evaluación.](${ interview_url(i='docassemble.playground1:fairscreening_followup.yml') })
+  Cuando reciba su informe de evaluación por correo, puede [comenzar la revisión de su informe de evaluación.](${ interview_url(i='docassemble.playground1:fairscreening_followup.yml') })
   % endif
   
   Si tiene alguna pregunta o inquietud, puede enviarnos un correo electrónico a fairscreeningreports@gmail.com.
@@ -1591,7 +1358,6 @@ question: |
   Contact Fair Screening
 subquestion: |
   If you have any questions or comments, contact Fair Screening at fairscreeningreports@gmail.com.
-section: Introduction
 ---
 event: privacy
 id: privacy
@@ -1654,6 +1420,8 @@ subquestion: |
   We collect information from you when you register on the Site. When registering on the Site, as appropriate, you may be asked to enter your name, e-mail address, mailing address and/or phone number.
   To help us optimize the Site, we may allow other authorized third parties to place or recognize unique cookies or other tracking technology on your browser. Any information provided to third parties through cookies will not be personally identifiable information, but may provide general segment information to enhance your user experience by providing more relevant marketing. We use third-party services and tools which may send cookies to users of the Site or utilize other tracking technology to collect certain information from users.
 
+  One such third party is Hotjar, which collects information (analytics, browser information, cookie data, date/time, demographic data, hardware/software type, internet service provider, page views and interaction data) and pseudonymous data (IP Address, location based data, Clickstream Data, and device ID. Hotjar’s privacy policy can be found at: http://www.hotjar.com/privacy. For more information about the information Hotjar may collect, please inquire further at https://www.hotjar.com/contact. We do not combine the information collected through Hotjar with personally identifiable information.
+  
   USE OF YOUR PERSONAL DATA
   
   Fair Screening may use your Personal Data in the following ways:
@@ -1704,7 +1472,6 @@ subquestion: |
   CONTACT INFORMATION
   
   Fair Screening welcomes your comments or questions regarding this Privacy Policy. If there are any questions regarding this privacy policy or any other policies, you may contact us at fairscreeningreports@gmail.com.
-section: Introduction
 ---
 event: tos
 id: tos
@@ -1756,7 +1523,7 @@ subquestion: |
   Fair Screening will have the right to investigate and prosecute violations of any of the above to the fullest extent of the law. Fair Screening may involve and cooperate with law enforcement authorities in prosecuting users who violate these Terms of Service. You acknowledge that Fair Screening has no obligation to monitor your access to or use of the Site, but has the right to do so for the purpose of operating the Site, to ensure your compliance with these Terms of Service, or to comply with applicable law or the order or requirement of a court, administrative agency or other governmental body. 
 
   LINKS TO THIRD-PARTY WEBSITES
- 
+  
   The Site may now or in the future contain links to third-party websites, advertisers, services, or resources that are not owned or controlled by Fair Screening. You acknowledge and agree that Fair Screening has no control over and is not responsible or liable for: (i) the availability or accuracy of such websites or resources; or (ii) the content, products, privacy policies, practices, or services on or available from such websites or resources. Links to such websites or resources do not imply any endorsement by Fair Screening of such websites or resources or the content, products, practices, privacy policies, or services available from such websites or resources. You acknowledge sole responsibility for and assume all risk arising from your use of any such websites or resources or the Content, products, or services on or available from such websites or resources. Additionally, your dealings with or participation in promotions of any third parties, including payment and delivery of goods, and any other terms (such as warranties) are solely between you and such third parties. You agree that Fair Screening shall not be responsible for any loss or damage of any sort relating to your dealings with such third parties. We encourage you to be aware of when you leave the Site, and to read the terms and conditions and privacy policy of any third-party website or service that you visit. You expressly relieve Fair Screening from any and all liability arising from your use of any third-party website or services or third-party content.
 
   TERMINATION & ACCOUNT CANCELLATION
@@ -1783,7 +1550,7 @@ subquestion: |
 
   CONTROLLING LAW
  
-  These Terms of Service shall be governed and construed in accordance with the laws of Iowa, excluding that State’s choiceof- law principles, and all claims relating to or arising out of this contract, or the breach thereof, whether sounding in contract, tort or otherwise, shall likewise be governed by the laws of Iowa, excluding that State’s choice-of-law principles.
+  These Terms of Service shall be governed and construed in accordance with the laws of Illinois, excluding that State’s choiceof- law principles, and all claims relating to or arising out of this contract, or the breach thereof, whether sounding in contract, tort or otherwise, shall likewise be governed by the laws of Illinois, excluding that State’s choice-of-law principles.
 
   ENTIRE AGREEMENT
  
@@ -1804,5 +1571,4 @@ subquestion: |
   CONTACTING FAIR SCREENING
  
   If you have any questions about these Terms of Service, please contact us at fairscreeningreports@gmail.com.
-section: Introduction
 ---
