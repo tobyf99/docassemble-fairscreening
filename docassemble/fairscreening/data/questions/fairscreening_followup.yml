@@ -13,8 +13,6 @@ comment: |
 initial: True
 code: |
   set_language(user_language)
-  if not user_logged_in():
-    kick_out_user
 ---
 sections:
   - intro: Introduction
@@ -103,7 +101,7 @@ code: |
   else:
     all_ok
 comment: | 
-  This logic controls whether the objects should be gathered. If you have an eviction, gather the eviction record.
+  This logic controls whether the objects should be gathered. Example: If you have an eviction, gather the eviction record.
 ---
 event: change_language_to_spanish
 code: |
@@ -116,13 +114,6 @@ code: |
   user_language = 'en'
   del menu_items
   menu_items = [ action_menu_item('Version En Espanol', 'change_language_to_spanish'), action_menu_item('Contact', 'contact'), action_menu_item('Privacy Policy', 'privacy'), action_menu_item('Terms of Use', 'tos') ]
----
-event: kick_out_user
-question: |
-  Please log in to use this interview, and create an Action Plan for your tenant screening report.
-buttons:
-  - Log in: signin
-  - Exit: exit
 ---
 event: intro
 section: intro
@@ -422,6 +413,8 @@ comment: |
 code: |   
   mistakes_records[i].nameofmistake
   mistakes_records[i].complete = True
+comment: | 
+  Gather mistakes records from the user
 ---
 id: numberofmistakes
 language: en
@@ -587,6 +580,8 @@ code: |
   outdated_records[i].nameofoutdated
   outdated_records[i].dateofoutdated
   outdated_records[i].complete = True
+comment: | 
+  Gather the outdated records from the user
 ---
 id: numberofoutdated
 language: en
@@ -816,6 +811,8 @@ code: |
   sealed_records[i].nameofsealed
   sealed_records[i].dateofsealed
   sealed_records[i].complete = True
+comment: | 
+  Gather sealed records from the user
 ---
 id: numberofsealed
 language: en
@@ -1047,6 +1044,8 @@ code: |
   eviction_records[i].nameofeviction
   eviction_records[i].dateofeviction
   eviction_records[i].complete = True
+comment: | 
+  Gather eviction records from the user
 ---
 id: numberofrequestseal
 language: en
@@ -1241,6 +1240,8 @@ code: |
         if criminal_records_expunge[i].probation == False:
           expunge_fail
   criminal_records_expunge[i].complete = True
+comment: | 
+  Expungement logic to determine if each record is eligible for expungement in Illinois.
 ---
 id: recordstoexpunge
 language: en
@@ -1713,6 +1714,8 @@ code: |
   if criminal_records_seal[i].three_year_screen == False:
     no_convictions_to_seal
   criminal_records_seal[i].complete = True
+comment: | 
+  Sealing logic to determine if each record is eligible for sealing in Illinois.
 ---
 id: convictionthreeyears
 language: en

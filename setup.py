@@ -45,14 +45,14 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
     return out
 
 setup(name='docassemble.fairscreening',
-      version='0.0.1',
-      description=('A docassemble extension.'),
+      version='1.0.0',
+      description=('App written in Docassemble to help US tenants obtain and amend their tenant screening reports'),
       long_description='Readme for Fair Screening',
       long_description_content_type='text/markdown',
-      author='System Administrator',
+      author='Toby Franklin',
       author_email='tobyfranklin@gmail.com',
       license='MIT',
-      url='https://docassemble.org',
+      url='https://www.fairscreening.com',
       packages=find_packages(),
       namespace_packages=['docassemble'],
       install_requires=[],
